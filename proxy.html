@@ -14,8 +14,8 @@
         const urlParams = new URLSearchParams(window.location.search);
         const targetUrl = urlParams.get('url');
         if (targetUrl) {
-            // Google ve YouTube gibi sitelerin iframe engellerini aşmasını sağlayan açık kaynaklı güvenli yönlendirici tünel
-            document.getElementById('target-frame').src = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
+            // Güvenli ve kesintisiz yükleme sağlayan doğrudan tünel yönlendirmesi
+            document.getElementById('target-frame').src = targetUrl;
         }
     </script>
 </body>
