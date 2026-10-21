@@ -12,7 +12,7 @@
             --text-color: #f3f4f6;
             --text-dim: #9ca3af;
             --accent-grad: linear-gradient(135deg, #ff007f, #7928ca, #00dfd8);
-            --header-bg: rgba(18, 21, 32, 0.95);
+            --header-bg: rgba(18, 21, 32, 0.98);
             --border-color: rgba(255, 255, 255, 0.1);
         }
 
@@ -22,7 +22,7 @@
             --bg-card: rgba(0, 0, 0, 0.04);
             --text-color: #1e293b;
             --text-dim: #64748b;
-            --header-bg: rgba(255, 255, 255, 0.95);
+            --header-bg: rgba(255, 255, 255, 0.98);
             --border-color: rgba(0, 0, 0, 0.1);
         }
 
@@ -41,18 +41,23 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            transition: background-color 0.3s;
         }
 
-        /* ÜST KISIM (SABİT / KİTLİ) */
+        /* ÜST SABİT KISIM - ASLA KAYBOLMAZ */
         .top-fixed-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            z-index: 9999;
+            z-index: 99999;
             background: var(--bg-secondary);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .top-fixed-container.bottom-pos {
+            top: auto;
+            bottom: 0;
+            border-top: 1px solid var(--border-color);
         }
 
         /* SEKMELER BARI */
@@ -129,14 +134,6 @@
             padding: 8px 12px;
             background: var(--header-bg);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .header-bottom-pos {
-            top: auto;
-            bottom: 0;
-            border-top: 1px solid var(--border-color);
-            border-bottom: none;
         }
 
         .nav-btn {
@@ -180,15 +177,16 @@
         }
         .url-input:focus { text-align: left; }
 
-        /* İÇERİK ALANI (Üst barın altında kalması için pay bırakıldı) */
+        /* İÇERİK ALANI */
         .app-body {
             flex: 1;
             position: relative;
-            margin-top: 96px; /* Sabit üst barın yüksekliği kadar boşluk */
+            margin-top: 96px; /* Sabit üst bar için bırakılan boşluk */
             height: calc(100vh - 96px);
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            background: var(--bg-primary);
         }
 
         .page-view {
@@ -197,6 +195,9 @@
             border: none;
             background: white;
             display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
         .page-view.active { display: block; }
 
@@ -337,7 +338,7 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.7);
             backdrop-filter: blur(8px);
-            z-index: 20000;
+            z-index: 999999;
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -367,8 +368,6 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        select, input[type="checkbox"] { accent-color: #ff007f; }
-
         select {
             background: var(--bg-card);
             color: var(--text-color);
@@ -391,14 +390,12 @@
 </head>
 <body>
 
-    <!-- ÜSTTE SABİT DURAN KISIM (SEKMELER VE ADRES BARI) -->
+    <!-- ÜSTTE / ALTTA KİTLİ SABİT KISIM -->
     <div class="top-fixed-container" id="top-container">
-        <!-- SEKMELER BARI -->
         <div class="tabs-bar" id="tabs-bar">
             <button class="add-tab-btn" onclick="createNewTab()">+</button>
         </div>
 
-        <!-- ADRES BARI -->
         <div class="header-bar" id="header-bar">
             <button class="nav-btn" onclick="goBack()" title="Geri">←</button>
             <button class="nav-btn" onclick="goForward()" title="İleri">→</button>
@@ -477,7 +474,7 @@
         let state = {
             tabs: [],
             activeTabId: null,
-            bookmarks: JSON.parse(localStorage.getItem('neseli_bookmarks') || '[{"name":"Google","url":"https://google.com"},{"name":"YouTube","url":"https://youtube.com"},{"name":"GitHub","url":"https://github.com"}]'),
+            bookmarks: JSON.parse(localStorage.getItem('neseli_bookmarks') || '[{"name":"Google","url":"https://www.google.com"},{"name":"YouTube","url":"https://www.youtube.com"},{"name":"GitHub","url":"https://github.com"}]'),
             settings: JSON.parse(localStorage.getItem('neseli_settings') || JSON.stringify({
                 searchEngine: 'google',
                 theme: 'dark',
@@ -510,9 +507,9 @@
 
             const container = document.getElementById('top-container');
             if (state.settings.barPos === 'bottom') {
-                container.classList.add('header-bottom-pos');
+                container.classList.add('bottom-pos');
             } else {
-                container.classList.remove('header-bottom-pos');
+                container.classList.remove('bottom-pos');
             }
         }
 
@@ -539,10 +536,14 @@
         function switchTab(id) {
             state.activeTabId = id;
             const tab = state.tabs.find(t => t.id === id);
+
+            document.querySelectorAll('.page-view').forEach(f => f.classList.remove('active'));
             const homeScreen = document.getElementById('home-screen');
 
             if (tab && tab.url) {
                 homeScreen.classList.add('hidden');
+                const iframe = document.getElementById('iframe_' + id);
+                if (iframe) iframe.classList.add('active');
                 document.getElementById('url-input').value = tab.url;
             } else {
                 homeScreen.classList.remove('hidden');
@@ -553,6 +554,9 @@
 
         function closeTab(id, event) {
             if (event) event.stopPropagation();
+            const iframe = document.getElementById('iframe_' + id);
+            if (iframe) iframe.remove();
+
             state.tabs = state.tabs.filter(t => t.id !== id);
             if (state.tabs.length === 0) {
                 createNewTab();
@@ -605,7 +609,18 @@
 
             tab.url = targetUrl;
             tab.title = val.replace('https://', '').replace('http://', '').split('/')[0];
-            window.location.href = targetUrl;
+
+            let iframe = document.getElementById('iframe_' + tab.id);
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.className = 'page-view';
+                iframe.id = 'iframe_' + tab.id;
+                document.getElementById('app-body').appendChild(iframe);
+            }
+            iframe.src = targetUrl;
+
+            switchTab(tab.id);
+            document.getElementById('home-search-input').value = '';
         }
 
         function goHome() {
@@ -617,9 +632,20 @@
             }
         }
 
-        function goBack() { window.history.back(); }
-        function goForward() { window.history.forward(); }
-        function reloadTab() { window.location.reload(); }
+        function goBack() {
+            const iframe = document.getElementById('iframe_' + state.activeTabId);
+            try { if (iframe && iframe.contentWindow) iframe.contentWindow.history.back(); } catch(e){}
+        }
+
+        function goForward() {
+            const iframe = document.getElementById('iframe_' + state.activeTabId);
+            try { if (iframe && iframe.contentWindow) iframe.contentWindow.history.forward(); } catch(e){}
+        }
+
+        function reloadTab() {
+            const iframe = document.getElementById('iframe_' + state.activeTabId);
+            if (iframe && iframe.src) iframe.src = iframe.src;
+        }
 
         function promptAddBookmark() {
             let name = prompt("Site Adı:");
@@ -657,3 +683,4 @@
     </script>
 </body>
 </html>
+
