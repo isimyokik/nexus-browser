@@ -43,7 +43,7 @@
             transition: background-color 0.3s;
         }
 
-        /* ÜST / ALT SABİT BAR (ASLA SİLİNMEZ) */
+        /* ÜST VEYA ALT BAR - ÇİVİ GİBİ SABİT, ASLA SİLİNMEZ */
         .top-fixed-container {
             position: fixed;
             top: 0; left: 0; width: 100%;
@@ -150,7 +150,7 @@
 </head>
 <body>
 
-    <!-- ÜST BAR VE DİŞLİ ÇARK AYARLARI -->
+    <!-- ÜST BAR VE DİŞLİ ÇARK (⚙️) -->
     <div class="top-fixed-container" id="top-container">
         <div class="tabs-bar" id="tabs-bar">
             <button class="add-tab-btn" onclick="createNewTab()">+</button>
@@ -161,7 +161,7 @@
             <button class="nav-btn" onclick="reloadTab()">↻</button>
             <button class="nav-btn" onclick="goHome()">🎈</button>
             <div class="url-box">
-                <input type="text" id="url-input" class="url-input" placeholder="Arama yap veya adres yazın..." onkeydown="handleUrlKey(event)">
+                <input type="text" id="url-input" class="url-input" placeholder="Google'da ara veya adres yazın..." onkeydown="handleUrlKey(event)">
             </div>
             <button class="nav-btn" onclick="toggleSettingsModal()" title="Ayarlar">⚙️</button>
         </div>
@@ -174,7 +174,7 @@
             <div class="brand-sub">Hızlı ve Özgür İnternet</div>
             <div class="search-container">
                 <span>🔍</span>
-                <input type="text" id="home-search-input" placeholder="Ne aramak istemiştiniz?" onkeydown="handleHomeSearch(event)">
+                <input type="text" id="home-search-input" placeholder="Google'da ara veya URL yaz..." onkeydown="handleHomeSearch(event)">
             </div>
             <div class="home-section">
                 <div class="section-title">
@@ -211,8 +211,10 @@
             <div class="setting-row">
                 <span>Arama Motoru</span>
                 <select id="setting-search" onchange="updateSettings()">
-                    <option value="duckduckgo">DuckDuckGo (Önerilen)</option>
+                    <option value="google">Google</option>
+                    <option value="yandex">Yandex</option>
                     <option value="bing">Bing</option>
+                    <option value="duckduckgo">DuckDuckGo</option>
                 </select>
             </div>
             <div class="setting-row">
@@ -229,19 +231,21 @@
         let state = {
             tabs: [],
             activeTabId: null,
-            bookmarks: JSON.parse(localStorage.getItem('neseli_bookmarks') || '[{"name":"Arama","url":"https://html.duckduckgo.com"},{"name":"Wikipedia","url":"https://tr.wikipedia.org"},{"name":"GitHub","url":"https://github.com"}]'),
+            bookmarks: JSON.parse(localStorage.getItem('neseli_bookmarks') || '[{"name":"Google","url":"https://www.google.com"},{"name":"YouTube","url":"https://www.youtube.com"},{"name":"GitHub","url":"https://github.com"}]'),
             settings: JSON.parse(localStorage.getItem('neseli_settings') || JSON.stringify({
                 vpn: false,
                 incognito: false,
                 barPos: 'top',
-                searchEngine: 'duckduckgo',
+                searchEngine: 'google',
                 theme: 'dark'
             }))
         };
 
         const SEARCH_ENGINES = {
-            duckduckgo: 'https://html.duckduckgo.com/html/?q=',
-            bing: 'https://www.bing.com/search?q='
+            google: 'https://www.google.com/search?q=',
+            yandex: 'https://yandex.com.tr/search/?text=',
+            bing: 'https://www.bing.com/search?q=',
+            duckduckgo: 'https://duckduckgo.com/?q='
         };
 
         window.onload = () => {
@@ -367,7 +371,7 @@
                 if (val.includes('.') && !val.includes(' ')) {
                     targetUrl = 'https://' + val;
                 } else {
-                    let engine = SEARCH_ENGINES[state.settings.searchEngine] || SEARCH_ENGINES.duckduckgo;
+                    let engine = SEARCH_ENGINES[state.settings.searchEngine] || SEARCH_ENGINES.google;
                     targetUrl = engine + encodeURIComponent(val);
                 }
             }
