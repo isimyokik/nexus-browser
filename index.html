@@ -49,7 +49,6 @@
             transition: background-color 0.3s;
         }
 
-        /* SEKMELER BARI */
         .tabs-bar {
             display: flex;
             align-items: center;
@@ -102,7 +101,6 @@
             justify-content: center;
             opacity: 0.7;
         }
-        .tab-close:hover { opacity: 1; background: rgba(0,0,0,0.2); }
 
         .add-tab-btn {
             background: var(--accent-grad);
@@ -118,10 +116,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 8px rgba(255, 0, 127, 0.3);
         }
 
-        /* ÜST / ALT ADRES BARI */
         .header-bar {
             display: flex;
             align-items: center;
@@ -133,7 +129,6 @@
             background-color: var(--vpn-glow);
             z-index: 100;
             flex-shrink: 0;
-            transition: background 0.3s;
         }
 
         .header-bottom {
@@ -157,7 +152,6 @@
             flex-shrink: 0;
             border: 1px solid var(--border-color);
         }
-        .nav-btn:active { transform: scale(0.92); }
 
         .url-box {
             flex: 1;
@@ -170,7 +164,6 @@
             height: 38px;
             min-width: 0;
         }
-        .url-box:focus-within { border-color: #ff007f; }
 
         .url-input {
             width: 100%;
@@ -181,9 +174,7 @@
             outline: none;
             text-align: center;
         }
-        .url-input:focus { text-align: left; }
 
-        /* İÇERİK ALANI */
         .app-body {
             flex: 1;
             position: relative;
@@ -192,16 +183,6 @@
             flex-direction: column;
         }
 
-        .page-view {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: white;
-            display: none;
-        }
-        .page-view.active { display: block; }
-
-        /* NEŞELİ ANA SAYFA */
         .home-screen {
             flex: 1;
             display: flex;
@@ -213,7 +194,6 @@
             text-align: center;
             background: var(--bg-primary);
         }
-        .home-screen.hidden { display: none; }
 
         .brand-logo {
             font-size: 44px;
@@ -222,7 +202,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 6px;
-            letter-spacing: -1px;
         }
 
         .brand-sub {
@@ -267,4 +246,242 @@
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: var(--
+            color: var(--text-dim);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .speed-tile {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .tile-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--accent-grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .tile-label {
+            font-size: 11px;
+            color: var(--text-color);
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+        }
+
+        .tile-delete {
+            position: absolute;
+            top: 2px; right: 2px;
+            width: 16px; height: 16px;
+            background: rgba(255,0,0,0.3);
+            color: #ff4b2b;
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 380px;
+            padding: 20px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        select, input[type="checkbox"] { accent-color: #ff007f; }
+
+        select {
+            background: var(--bg-card);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .close-btn {
+            background: var(--accent-grad);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tabs-bar" id="tabs-bar">
+        <button class="add-tab-btn" onclick="createNewTab()">+</button>
+    </div>
+
+    <div class="header-bar" id="header-bar">
+        <button class="nav-btn" onclick="goBack()">←</button>
+        <button class="nav-btn" onclick="goForward()">→</button>
+        <button class="nav-btn" onclick="reloadTab()">↻</button>
+        <button class="nav-btn" onclick="goHome()">🎈</button>
+        
+        <div class="url-box">
+            <input type="text" id="url-input" class="url-input" placeholder="Google'da ara veya adres yazın..." onkeydown="handleUrlKey(event)">
+        </div>
+
+        <button class="nav-btn" onclick="toggleSettingsModal()">⚙️</button>
+    </div>
+
+    <div class="app-body" id="app-body">
+        <div class="home-screen" id="home-screen">
+            <div class="brand-logo">Neşeli 🎈</div>
+            <div class="brand-sub">Hızlı ve Özgür İnternet</div>
+
+            <div class="search-container">
+                <span>🔍</span>
+                <input type="text" id="home-search-input" placeholder="Google'da ara veya URL yaz..." onkeydown="handleHomeSearch(event)">
+            </div>
+
+            <div class="home-section">
+                <div class="section-title">
+                    <span>Hızlı Erişim</span>
+                    <button style="background:none; border:none; color:#ff007f; font-size:12px; cursor:pointer; font-weight:bold;" onclick="promptAddBookmark()">+ Site Ekle</button>
+                </div>
+                <div class="grid-container" id="bookmarks-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ayarlar ⚙️</h3>
+                <button class="close-btn" onclick="toggleSettingsModal()">Tamam</button>
+            </div>
+
+            <div class="setting-row">
+                <span>VPN / Güvenli Tünel</span>
+                <input type="checkbox" id="setting-vpn" onchange="updateSettings()">
+            </div>
+
+            <div class="setting-row">
+                <span>Reklam Engelleme (AdBlock)</span>
+                <input type="checkbox" id="setting-adblock" onchange="updateSettings()">
+            </div>
+
+            <div class="setting-row">
+                <span>Gizli Mod</span>
+                <input type="checkbox" id="setting-incognito" onchange="updateSettings()">
+            </div>
+
+            <div class="setting-row">
+                <span>Arama Motoru</span>
+                <select id="setting-search" onchange="updateSettings()">
+                    <option value="google">Google</option>
+                    <option value="yandex">Yandex</option>
+                    <option value="bing">Bing</option>
+                    <option value="duckduckgo">DuckDuckGo</option>
+                </select>
+            </div>
+
+            <div class="setting-row">
+                <span>Tema</span>
+                <select id="setting-theme" onchange="updateSettings()">
+                    <option value="dark">Koyu Tema</option>
+                    <option value="light">Açık Tema</option>
+                    <option value="system">Sistem</option>
+                </select>
+            </div>
+
+            <div class="setting-row">
+                <span>Adres Barı Konumu</span>
+                <select id="setting-bar-pos" onchange="updateSettings()">
+                    <option value="top">Üstte</option>
+                    <option value="bottom">Altta</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            tabs: [],
+            activeTabId: null,
+            bookmarks: JSON.parse(localStorage.getItem('neseli_bookmarks') || '[]'),
+            settings: JSON.parse(localStorage.getItem('neseli_settings') || JSON.stringify({
+                vpn: false,
+                adblock: true,
+                incognito: false,
+                searchEngine: 'google',
+                theme: 'dark',
+                barPos: 'top'
+            }))
+        };
+
+        const SEARCH_ENGINES = {
+            google: 'https://www.google.com/search?q=',
+            yandex: 'https://yandex.com.tr/search/?text=',
+            bing: 'https://www.bing.com/search?q=',
+            duckduckgo: 'https://duckduckgo.com/?q='
+        };
+
+        window.onload = () => {
+            applySettingsUI();
+            renderBookmarks();
+            createNewTab();
+        };
+
+        function apply
