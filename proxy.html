@@ -9,7 +9,7 @@
     </style>
 </head>
 <body>
-    <iframe id="target-frame"></iframe>
+    <iframe id="target-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const targetUrl = urlParams.get('url');
