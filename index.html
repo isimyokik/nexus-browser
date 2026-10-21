@@ -43,7 +43,7 @@
             transition: background-color 0.3s;
         }
 
-        /* ÜST VEYA ALT BAR - ASLA SİLİNMEZ, KİTLİ SABİT */
+        /* ÜST / ALT SABİT BAR (ASLA SİLİNMEZ) */
         .top-fixed-container {
             position: fixed;
             top: 0; left: 0; width: 100%;
@@ -101,12 +101,15 @@
 
         /* İÇERİK ALANI */
         .app-body {
-            flex: 1; position: relative; margin-top: 96px; height: calc(100vh - 96px); background: var(--bg-primary); display: flex; flex-direction: column; overflow-y: auto;
+            flex: 1; position: relative; margin-top: 96px; height: calc(100vh - 96px); background: var(--bg-primary); display: flex; flex-direction: column;
         }
         .body-bottom-margin { margin-top: 0; margin-bottom: 96px; }
 
+        .page-view { width: 100%; height: 100%; border: none; background: white; display: none; position: absolute; top: 0; left: 0; }
+        .page-view.active { display: block; }
+
         .home-screen {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; min-height: 100%;
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; position: absolute; width: 100%; height: 100%; top: 0; left: 0; background: var(--bg-primary); z-index: 5;
         }
         .home-screen.hidden { display: none; }
 
@@ -147,7 +150,7 @@
 </head>
 <body>
 
-    <!-- SABİT ÜST BAR (DİŞLİ ÇARK VE TÜM AYARLAR YERİNDE) -->
+    <!-- ÜST BAR VE AYARLAR -->
     <div class="top-fixed-container" id="top-container">
         <div class="tabs-bar" id="tabs-bar">
             <button class="add-tab-btn" onclick="createNewTab()">+</button>
@@ -158,7 +161,7 @@
             <button class="nav-btn" onclick="reloadTab()">↻</button>
             <button class="nav-btn" onclick="goHome()">🎈</button>
             <div class="url-box">
-                <input type="text" id="url-input" class="url-input" placeholder="Google'da ara veya adres yaz..." onkeydown="handleUrlKey(event)">
+                <input type="text" id="url-input" class="url-input" placeholder="Google'da ara veya adres yazın..." onkeydown="handleUrlKey(event)">
             </div>
             <button class="nav-btn" onclick="toggleSettingsModal()" title="Ayarlar">⚙️</button>
         </div>
@@ -293,6 +296,12 @@
             const id = 'tab_' + Date.now();
             const isInc = state.settings.incognito;
             state.tabs.push({ id, title: isInc ? 'Gizli Sekme' : 'Yeni Sekme', url: null, isIncognito: isInc });
+
+            const iframe = document.createElement('iframe');
+            iframe.className = 'page-view';
+            iframe.id = 'iframe_' + id;
+            document.getElementById('app-body').appendChild(iframe);
+
             switchTab(id);
         }
 
@@ -301,8 +310,12 @@
             const tab = state.tabs.find(t => t.id === id);
             const homeScreen = document.getElementById('home-screen');
 
+            document.querySelectorAll('.page-view').forEach(f => f.classList.remove('active'));
+
             if (tab && tab.url) {
                 homeScreen.classList.add('hidden');
+                const iframe = document.getElementById('iframe_' + id);
+                if (iframe) iframe.classList.add('active');
                 document.getElementById('url-input').value = tab.url;
             } else {
                 homeScreen.classList.remove('hidden');
@@ -313,6 +326,9 @@
 
         function closeTab(id, event) {
             if (event) event.stopPropagation();
+            const iframe = document.getElementById('iframe_' + id);
+            if (iframe) iframe.remove();
+
             state.tabs = state.tabs.filter(t => t.id !== id);
             if (state.tabs.length === 0) {
                 createNewTab();
@@ -362,9 +378,14 @@
 
             tab.url = targetUrl;
             tab.title = val.replace('https://', '').replace('http://', '').split('/')[0];
-            
-            // Site açıldığında tarayıcının kendi akışında hatasız çalışır, üst bar yerinde kalır
-            window.location.href = targetUrl;
+
+            const iframe = document.getElementById('iframe_' + tab.id);
+            if (iframe) {
+                // proxy.html üzerinden yükleyerek üst barın silinmesini engelliyoruz
+                iframe.src = 'proxy.html?url=' + encodeURIComponent(targetUrl);
+            }
+
+            switchTab(tab.id);
         }
 
         function goHome() {
@@ -376,9 +397,20 @@
             }
         }
 
-        function goBack() { window.history.back(); }
-        function goForward() { window.history.forward(); }
-        function reloadTab() { window.location.reload(); }
+        function goBack() {
+            const iframe = document.getElementById('iframe_' + state.activeTabId);
+            try { if (iframe && iframe.contentWindow) iframe.contentWindow.history.back(); } catch(e){}
+        }
+
+        function goForward() {
+            const iframe = document.getElementById('iframe_' + state.activeTabId);
+            try { if (iframe && iframe.contentWindow) iframe.contentWindow.history.forward(); } catch(e){}
+        }
+
+        function reloadTab() {
+            const iframe = document.getElementById('iframe_' + state.activeTabId);
+            if (iframe && iframe.src) iframe.src = iframe.src;
+        }
 
         function promptAddBookmark() {
             let name = prompt("Site Adı:");
