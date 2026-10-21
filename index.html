@@ -43,7 +43,7 @@
             transition: background-color 0.3s;
         }
 
-        /* ÜST VEYA ALT BAR - SABİT VE KİTLİ */
+        /* ÜST / ALT SABİT BAR (ASLA SİLİNMEZ) */
         .top-fixed-container {
             position: fixed;
             top: 0; left: 0; width: 100%;
@@ -150,6 +150,7 @@
 </head>
 <body>
 
+    <!-- ÜST BAR VE DİŞLİ ÇARK AYARLARI -->
     <div class="top-fixed-container" id="top-container">
         <div class="tabs-bar" id="tabs-bar">
             <button class="add-tab-btn" onclick="createNewTab()">+</button>
@@ -160,12 +161,13 @@
             <button class="nav-btn" onclick="reloadTab()">↻</button>
             <button class="nav-btn" onclick="goHome()">🎈</button>
             <div class="url-box">
-                <input type="text" id="url-input" class="url-input" placeholder="Arama yap veya adres yaz..." onkeydown="handleUrlKey(event)">
+                <input type="text" id="url-input" class="url-input" placeholder="Arama yap veya adres yazın..." onkeydown="handleUrlKey(event)">
             </div>
             <button class="nav-btn" onclick="toggleSettingsModal()" title="Ayarlar">⚙️</button>
         </div>
     </div>
 
+    <!-- İÇERİK ALANI -->
     <div class="app-body" id="app-body">
         <div class="home-screen" id="home-screen">
             <div class="brand-logo">Neşeli 🎈</div>
@@ -210,7 +212,6 @@
                 <span>Arama Motoru</span>
                 <select id="setting-search" onchange="updateSettings()">
                     <option value="duckduckgo">DuckDuckGo (Önerilen)</option>
-                    <option value="google">Google (Hafif Sürüm)</option>
                     <option value="bing">Bing</option>
                 </select>
             </div>
@@ -228,7 +229,7 @@
         let state = {
             tabs: [],
             activeTabId: null,
-            bookmarks: JSON.parse(localStorage.getItem('neseli_bookmarks') || '[{"name":"DuckDuckGo","url":"https://html.duckduckgo.com"},{"name":"Wikipedia","url":"https://tr.wikipedia.org"},{"name":"GitHub","url":"https://github.com"}]'),
+            bookmarks: JSON.parse(localStorage.getItem('neseli_bookmarks') || '[{"name":"Arama","url":"https://html.duckduckgo.com"},{"name":"Wikipedia","url":"https://tr.wikipedia.org"},{"name":"GitHub","url":"https://github.com"}]'),
             settings: JSON.parse(localStorage.getItem('neseli_settings') || JSON.stringify({
                 vpn: false,
                 incognito: false,
@@ -240,7 +241,6 @@
 
         const SEARCH_ENGINES = {
             duckduckgo: 'https://html.duckduckgo.com/html/?q=',
-            google: 'https://lite.duckduckgo.com/lite/?q=',
             bing: 'https://www.bing.com/search?q='
         };
 
