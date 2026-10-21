@@ -44,6 +44,17 @@
             transition: background-color 0.3s;
         }
 
+        /* ÜST KISIM (SABİT / KİTLİ) */
+        .top-fixed-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 9999;
+            background: var(--bg-secondary);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
         /* SEKMELER BARI */
         .tabs-bar {
             display: flex;
@@ -53,9 +64,7 @@
             gap: 6px;
             overflow-x: auto;
             border-bottom: 1px solid var(--border-color);
-            flex-shrink: 0;
             scrollbar-width: none;
-            z-index: 120;
         }
         .tabs-bar::-webkit-scrollbar { display: none; }
 
@@ -121,12 +130,11 @@
             background: var(--header-bg);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border-color);
-            z-index: 100;
-            flex-shrink: 0;
         }
 
-        .header-bottom {
-            order: 10;
+        .header-bottom-pos {
+            top: auto;
+            bottom: 0;
             border-top: 1px solid var(--border-color);
             border-bottom: none;
         }
@@ -172,14 +180,25 @@
         }
         .url-input:focus { text-align: left; }
 
-        /* İÇERİK ALANI */
+        /* İÇERİK ALANI (Üst barın altında kalması için pay bırakıldı) */
         .app-body {
             flex: 1;
             position: relative;
+            margin-top: 96px; /* Sabit üst barın yüksekliği kadar boşluk */
+            height: calc(100vh - 96px);
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
+
+        .page-view {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+            display: none;
+        }
+        .page-view.active { display: block; }
 
         /* ANA SAYFA */
         .home-screen {
@@ -318,7 +337,7 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.7);
             backdrop-filter: blur(8px);
-            z-index: 2000;
+            z-index: 20000;
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -372,23 +391,26 @@
 </head>
 <body>
 
-    <!-- SEKMELER BARI -->
-    <div class="tabs-bar" id="tabs-bar">
-        <button class="add-tab-btn" onclick="createNewTab()">+</button>
-    </div>
-
-    <!-- ADRES BARI -->
-    <div class="header-bar" id="header-bar">
-        <button class="nav-btn" onclick="goBack()" title="Geri">←</button>
-        <button class="nav-btn" onclick="goForward()" title="İleri">→</button>
-        <button class="nav-btn" onclick="reloadTab()" title="Yenile">↻</button>
-        <button class="nav-btn" onclick="goHome()" title="Ana Sayfa">🎈</button>
-        
-        <div class="url-box">
-            <input type="text" id="url-input" class="url-input" placeholder="Google'da ara veya adres yazın..." onkeydown="handleUrlKey(event)">
+    <!-- ÜSTTE SABİT DURAN KISIM (SEKMELER VE ADRES BARI) -->
+    <div class="top-fixed-container" id="top-container">
+        <!-- SEKMELER BARI -->
+        <div class="tabs-bar" id="tabs-bar">
+            <button class="add-tab-btn" onclick="createNewTab()">+</button>
         </div>
 
-        <button class="nav-btn" onclick="toggleSettingsModal()" title="Ayarlar">⚙️</button>
+        <!-- ADRES BARI -->
+        <div class="header-bar" id="header-bar">
+            <button class="nav-btn" onclick="goBack()" title="Geri">←</button>
+            <button class="nav-btn" onclick="goForward()" title="İleri">→</button>
+            <button class="nav-btn" onclick="reloadTab()" title="Yenile">↻</button>
+            <button class="nav-btn" onclick="goHome()" title="Ana Sayfa">🎈</button>
+            
+            <div class="url-box">
+                <input type="text" id="url-input" class="url-input" placeholder="Google'da ara veya adres yazın..." onkeydown="handleUrlKey(event)">
+            </div>
+
+            <button class="nav-btn" onclick="toggleSettingsModal()" title="Ayarlar">⚙️</button>
+        </div>
     </div>
 
     <!-- İÇERİK ALANI -->
@@ -486,11 +508,11 @@
                 document.body.classList.add('theme-light');
             }
 
-            const header = document.getElementById('header-bar');
+            const container = document.getElementById('top-container');
             if (state.settings.barPos === 'bottom') {
-                header.classList.add('header-bottom');
+                container.classList.add('header-bottom-pos');
             } else {
-                header.classList.remove('header-bottom');
+                container.classList.remove('header-bottom-pos');
             }
         }
 
@@ -583,8 +605,6 @@
 
             tab.url = targetUrl;
             tab.title = val.replace('https://', '').replace('http://', '').split('/')[0];
-
-            // DOĞRUDAN KESİN ÇÖZÜM: Sayfayı harici iframe engellerine takılmadan akıcı açar
             window.location.href = targetUrl;
         }
 
@@ -637,4 +657,3 @@
     </script>
 </body>
 </html>
-
