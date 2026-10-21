@@ -8,11 +8,27 @@
         :root {
             --bg-primary: #090a0f;
             --bg-secondary: #121520;
+            --bg-card: rgba(255, 255, 255, 0.05);
             --text-color: #f3f4f6;
             --text-dim: #9ca3af;
             --accent-grad: linear-gradient(135deg, #ff007f, #7928ca, #00dfd8);
             --header-bg: rgba(18, 21, 32, 0.98);
             --border-color: rgba(255, 255, 255, 0.1);
+            --vpn-glow: transparent;
+        }
+
+        body.theme-light {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(0, 0, 0, 0.04);
+            --text-color: #1e293b;
+            --text-dim: #64748b;
+            --header-bg: rgba(255, 255, 255, 0.98);
+            --border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body.vpn-active {
+            --vpn-glow: rgba(16, 185, 129, 0.25);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -24,9 +40,10 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            transition: background-color 0.3s;
         }
 
-        /* ÜST BAŞLIK - ASLA YOK OLMAZ, SABİT */
+        /* ÜST VEYA ALT BAR - SABİT VE KİTLİ */
         .top-fixed-container {
             position: fixed;
             top: 0; left: 0; width: 100%;
@@ -34,7 +51,14 @@
             background: var(--header-bg);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border-color);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            background-color: var(--vpn-glow);
+        }
+
+        .top-fixed-container.bottom-pos {
+            top: auto; bottom: 0;
+            border-top: 1px solid var(--border-color);
+            border-bottom: none;
         }
 
         .tabs-bar {
@@ -45,12 +69,13 @@
         .tabs-bar::-webkit-scrollbar { display: none; }
 
         .tab-item {
-            display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05);
+            display: flex; align-items: center; gap: 8px; background: var(--bg-card);
             padding: 6px 12px; border-radius: 12px; font-size: 13px; max-width: 150px;
             min-width: 90px; cursor: pointer; border: 1px solid var(--border-color);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-dim);
         }
         .tab-item.active { background: var(--accent-grad); color: white; font-weight: 600; border-color: transparent; }
+        .tab-item.incognito-tab { border: 1px solid #a855f7; }
         .tab-close { font-size: 12px; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; opacity: 0.7; }
 
         .add-tab-btn {
@@ -62,22 +87,23 @@
         .header-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
 
         .nav-btn {
-            width: 36px; height: 36px; border: none; background: rgba(255,255,255,0.05); color: var(--text-color);
+            width: 36px; height: 36px; border: none; background: var(--bg-card); color: var(--text-color);
             border-radius: 10px; font-size: 15px; display: flex; align-items: center; justify-content: center;
             cursor: pointer; flex-shrink: 0; border: 1px solid var(--border-color);
         }
         .nav-btn:active { transform: scale(0.92); }
 
         .url-box {
-            flex: 1; display: flex; align-items: center; background: rgba(255,255,255,0.05);
+            flex: 1; display: flex; align-items: center; background: var(--bg-card);
             border: 1px solid var(--border-color); border-radius: 12px; padding: 0 12px; height: 38px;
         }
         .url-input { width: 100%; background: transparent; border: none; color: var(--text-color); font-size: 14px; outline: none; text-align: center; }
 
-        /* İÇERİK ALANI VE IFRAME TÜNELİ */
+        /* İÇERİK ALANI */
         .app-body {
             flex: 1; position: relative; margin-top: 96px; height: calc(100vh - 96px); background: var(--bg-primary); display: flex; flex-direction: column;
         }
+        .body-bottom-margin { margin-top: 0; margin-bottom: 96px; }
 
         .page-view { width: 100%; height: 100%; border: none; background: white; display: none; position: absolute; top: 0; left: 0; }
         .page-view.active { display: block; }
@@ -97,20 +123,34 @@
         .search-container input { flex: 1; background: transparent; border: none; color: var(--text-color); font-size: 15px; outline: none; text-align: center; }
 
         .home-section { width: 100%; max-width: 480px; text-align: left; }
-        .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 12px; }
+        .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;}
         .grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 
         .speed-tile {
             background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px;
-            padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer;
+            padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; position: relative;
         }
         .tile-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--accent-grad); display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; font-weight: bold; }
         .tile-label { font-size: 11px; color: var(--text-color); width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+        .tile-delete { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background: rgba(255,0,0,0.3); color: #ff4b2b; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+
+        /* AYARLAR MODAL */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 999999;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-content { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 20px; width: 100%; max-width: 380px; padding: 20px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
+        select, input[type="checkbox"] { accent-color: #ff007f; }
+        select { background: var(--bg-card); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 8px; outline: none; }
+        .close-btn { background: var(--accent-grad); border: none; color: white; padding: 8px 16px; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="top-fixed-container">
+    <div class="top-fixed-container" id="top-container">
         <div class="tabs-bar" id="tabs-bar">
             <button class="add-tab-btn" onclick="createNewTab()">+</button>
         </div>
@@ -120,8 +160,9 @@
             <button class="nav-btn" onclick="reloadTab()">↻</button>
             <button class="nav-btn" onclick="goHome()">🎈</button>
             <div class="url-box">
-                <input type="text" id="url-input" class="url-input" placeholder="Google'da ara veya adres yazın..." onkeydown="handleUrlKey(event)">
+                <input type="text" id="url-input" class="url-input" placeholder="Arama yap veya adres yaz..." onkeydown="handleUrlKey(event)">
             </div>
+            <button class="nav-btn" onclick="toggleSettingsModal()" title="Ayarlar">⚙️</button>
         </div>
     </div>
 
@@ -131,11 +172,54 @@
             <div class="brand-sub">Hızlı ve Özgür İnternet</div>
             <div class="search-container">
                 <span>🔍</span>
-                <input type="text" id="home-search-input" placeholder="Google'da ara veya URL yaz..." onkeydown="handleHomeSearch(event)">
+                <input type="text" id="home-search-input" placeholder="Ne aramak istemiştiniz?" onkeydown="handleHomeSearch(event)">
             </div>
             <div class="home-section">
-                <div class="section-title">Hızlı Erişim</div>
+                <div class="section-title">
+                    <span>Hızlı Erişim</span>
+                    <button style="background:none; border:none; color:#ff007f; font-size:12px; cursor:pointer; font-weight:bold;" onclick="promptAddBookmark()">+ Site Ekle</button>
+                </div>
                 <div class="grid-container" id="bookmarks-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AYARLAR MODAL -->
+    <div class="modal" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ayarlar ⚙️</h3>
+                <button class="close-btn" onclick="toggleSettingsModal()">Tamam</button>
+            </div>
+            <div class="setting-row">
+                <span>VPN / Güvenli Tünel Modu</span>
+                <input type="checkbox" id="setting-vpn" onchange="updateSettings()">
+            </div>
+            <div class="setting-row">
+                <span>Varsayılan Gizli Mod</span>
+                <input type="checkbox" id="setting-incognito" onchange="updateSettings()">
+            </div>
+            <div class="setting-row">
+                <span>Üst Bar Konumu</span>
+                <select id="setting-bar-pos" onchange="updateSettings()">
+                    <option value="top">Üstte</option>
+                    <option value="bottom">Altta</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <span>Arama Motoru</span>
+                <select id="setting-search" onchange="updateSettings()">
+                    <option value="duckduckgo">DuckDuckGo (Önerilen)</option>
+                    <option value="google">Google (Hafif Sürüm)</option>
+                    <option value="bing">Bing</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <span>Tema</span>
+                <select id="setting-theme" onchange="updateSettings()">
+                    <option value="dark">Koyu Tema</option>
+                    <option value="light">Açık Tema</option>
+                </select>
             </div>
         </div>
     </div>
@@ -144,22 +228,70 @@
         let state = {
             tabs: [],
             activeTabId: null,
-            bookmarks: [
-                { name: "Google", url: "https://www.google.com" },
-                { name: "YouTube", url: "https://www.youtube.com" },
-                { name: "GitHub", url: "https://github.com" },
-                { name: "Wikipedia", url: "https://tr.wikipedia.org" }
-            ]
+            bookmarks: JSON.parse(localStorage.getItem('neseli_bookmarks') || '[{"name":"DuckDuckGo","url":"https://html.duckduckgo.com"},{"name":"Wikipedia","url":"https://tr.wikipedia.org"},{"name":"GitHub","url":"https://github.com"}]'),
+            settings: JSON.parse(localStorage.getItem('neseli_settings') || JSON.stringify({
+                vpn: false,
+                incognito: false,
+                barPos: 'top',
+                searchEngine: 'duckduckgo',
+                theme: 'dark'
+            }))
+        };
+
+        const SEARCH_ENGINES = {
+            duckduckgo: 'https://html.duckduckgo.com/html/?q=',
+            google: 'https://lite.duckduckgo.com/lite/?q=',
+            bing: 'https://www.bing.com/search?q='
         };
 
         window.onload = () => {
+            applySettingsUI();
             renderBookmarks();
             createNewTab();
         };
 
+        function applySettingsUI() {
+            document.getElementById('setting-vpn').checked = state.settings.vpn;
+            document.getElementById('setting-incognito').checked = state.settings.incognito;
+            document.getElementById('setting-bar-pos').value = state.settings.barPos;
+            document.getElementById('setting-search').value = state.settings.searchEngine;
+            document.getElementById('setting-theme').value = state.settings.theme;
+
+            document.body.classList.remove('theme-light');
+            if (state.settings.theme === 'light') document.body.classList.add('theme-light');
+            document.body.classList.toggle('vpn-active', state.settings.vpn);
+
+            const container = document.getElementById('top-container');
+            const appBody = document.getElementById('app-body');
+            if (state.settings.barPos === 'bottom') {
+                container.classList.add('bottom-pos');
+                appBody.classList.add('body-bottom-margin');
+            } else {
+                container.classList.remove('bottom-pos');
+                appBody.classList.remove('body-bottom-margin');
+            }
+        }
+
+        function updateSettings() {
+            state.settings.vpn = document.getElementById('setting-vpn').checked;
+            state.settings.incognito = document.getElementById('setting-incognito').checked;
+            state.settings.barPos = document.getElementById('setting-bar-pos').value;
+            state.settings.searchEngine = document.getElementById('setting-search').value;
+            state.settings.theme = document.getElementById('setting-theme').value;
+
+            localStorage.setItem('neseli_settings', JSON.stringify(state.settings));
+            applySettingsUI();
+        }
+
+        function toggleSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        }
+
         function createNewTab() {
             const id = 'tab_' + Date.now();
-            state.tabs.push({ id, title: 'Yeni Sekme', url: null });
+            const isInc = state.settings.incognito;
+            state.tabs.push({ id, title: isInc ? 'Gizli Sekme' : 'Yeni Sekme', url: null, isIncognito: isInc });
 
             const iframe = document.createElement('iframe');
             iframe.className = 'page-view';
@@ -209,9 +341,9 @@
 
             state.tabs.forEach(tab => {
                 const el = document.createElement('div');
-                el.className = `tab-item ${tab.id === state.activeTabId ? 'active' : ''}`;
+                el.className = `tab-item ${tab.id === state.activeTabId ? 'active' : ''} ${tab.isIncognito ? 'incognito-tab' : ''}`;
                 el.onclick = () => switchTab(tab.id);
-                el.innerHTML = `<span>🎈 ${tab.title}</span><span class="tab-close" onclick="closeTab('${tab.id}', event)">✕</span>`;
+                el.innerHTML = `<span>${tab.isIncognito ? '🕵️' : '🎈'} ${tab.title}</span><span class="tab-close" onclick="closeTab('${tab.id}', event)">✕</span>`;
                 tabsBar.appendChild(el);
             });
 
@@ -235,7 +367,8 @@
                 if (val.includes('.') && !val.includes(' ')) {
                     targetUrl = 'https://' + val;
                 } else {
-                    targetUrl = 'https://www.google.com/search?q=' + encodeURIComponent(val);
+                    let engine = SEARCH_ENGINES[state.settings.searchEngine] || SEARCH_ENGINES.duckduckgo;
+                    targetUrl = engine + encodeURIComponent(val);
                 }
             }
 
@@ -254,7 +387,7 @@
             const tab = state.tabs.find(t => t.id === state.activeTabId);
             if (tab) {
                 tab.url = null;
-                tab.title = 'Yeni Sekme';
+                tab.title = tab.isIncognito ? 'Gizli Sekme' : 'Yeni Sekme';
                 switchTab(tab.id);
             }
         }
@@ -274,14 +407,35 @@
             if (iframe && iframe.src) iframe.src = iframe.src;
         }
 
+        function promptAddBookmark() {
+            let name = prompt("Site Adı:");
+            let url = prompt("Site Adresi:");
+            if (name && url) {
+                state.bookmarks.push({ name, url });
+                localStorage.setItem('neseli_bookmarks', JSON.stringify(state.bookmarks));
+                renderBookmarks();
+            }
+        }
+
+        function deleteBookmark(index, event) {
+            event.stopPropagation();
+            state.bookmarks.splice(index, 1);
+            localStorage.setItem('neseli_bookmarks', JSON.stringify(state.bookmarks));
+            renderBookmarks();
+        }
+
         function renderBookmarks() {
             const grid = document.getElementById('bookmarks-grid');
             grid.innerHTML = '';
-            state.bookmarks.forEach((bm) => {
+            state.bookmarks.forEach((bm, index) => {
                 const el = document.createElement('div');
                 el.className = 'speed-tile';
                 el.onclick = () => navigateTo(bm.url);
-                el.innerHTML = `<div class="tile-icon">${bm.name.charAt(0).toUpperCase()}</div><div class="tile-label">${bm.name}</div>`;
+                el.innerHTML = `
+                    <div class="tile-icon">${bm.name.charAt(0).toUpperCase()}</div>
+                    <div class="tile-label">${bm.name}</div>
+                    <div class="tile-delete" onclick="deleteBookmark(${index}, event)">✕</div>
+                `;
                 grid.appendChild(el);
             });
         }
