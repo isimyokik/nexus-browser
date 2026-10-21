@@ -1,10 +1,385 @@
-// Android Studio (Kotlin) Tarafı İçin Otomatik Gizlenen Üst Bar Mantığı
-webView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-    if (scrollY > oldScrollY + 10) {
-        // Aşağı kaydırıldı -> Üst barı gizle
-        toolbar.animate().translationY(-toolbar.height.toFloat()).setDuration(200).start()
-    } else if (scrollY < oldScrollY - 10) {
-        // Yukarı kaydırıldı -> Üst barı göster
-        toolbar.animate().translationY(0f).setDuration(200).start()
-    }
-}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neşeli Tarayıcı 🎈</title>
+    <style>
+        :root {
+            --bg-primary: #090a0f;
+            --bg-secondary: #121520;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --text-color: #f3f4f6;
+            --text-dim: #9ca3af;
+            --accent-grad: linear-gradient(135deg, #ff007f, #7928ca, #00dfd8);
+            --header-bg: rgba(18, 21, 32, 0.95);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.theme-light {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(0, 0, 0, 0.04);
+            --text-color: #1e293b;
+            --text-dim: #64748b;
+            --header-bg: rgba(255, 255, 255, 0.95);
+            --border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background-color 0.3s;
+        }
+
+        /* AÇILIR KAPANIR ÜST BAR */
+        .top-fixed-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 99999;
+            background: var(--bg-secondary);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .top-fixed-container.hidden-bar {
+            transform: translateY(-100%);
+        }
+
+        /* SEKMELER BARI */
+        .tabs-bar {
+            display: flex;
+            align-items: center;
+            background: var(--bg-secondary);
+            padding: 6px 8px;
+            gap: 6px;
+            overflow-x: auto;
+            border-bottom: 1px solid var(--border-color);
+            scrollbar-width: none;
+        }
+        .tabs-bar::-webkit-scrollbar { display: none; }
+
+        .tab-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            max-width: 150px;
+            min-width: 90px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-dim);
+        }
+
+        .tab-item.active {
+            background: var(--accent-grad);
+            color: white;
+            font-weight: 600;
+            border-color: transparent;
+        }
+
+        .tab-close {
+            font-size: 12px;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+        }
+        .tab-close:hover { opacity: 1; background: rgba(0,0,0,0.2); }
+
+        .add-tab-btn {
+            background: var(--accent-grad);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ADRES BARI */
+        .header-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--header-bg);
+            backdrop-filter: blur(12px);
+        }
+
+        .nav-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--bg-card);
+            color: var(--text-color);
+            border-radius: 10px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            border: 1px solid var(--border-color);
+        }
+        .nav-btn:active { transform: scale(0.92); }
+
+        .url-box {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0 12px;
+            height: 38px;
+            min-width: 0;
+        }
+        .url-box:focus-within { border-color: #ff007f; }
+
+        .url-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-size: 14px;
+            outline: none;
+            text-align: center;
+        }
+        .url-input:focus { text-align: left; }
+
+        /* İÇERİK ALANI */
+        .app-body {
+            flex: 1;
+            position: relative;
+            margin-top: 96px;
+            height: calc(100vh - 96px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+        }
+
+        .page-view {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .page-view.active { display: block; }
+
+        /* ANA SAYFA */
+        .home-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+            text-align: center;
+            background: var(--bg-primary);
+            z-index: 10;
+        }
+        .home-screen.hidden { display: none; }
+
+        .brand-logo {
+            font-size: 44px;
+            font-weight: 900;
+            background: var(--accent-grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .brand-sub {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+            flex-shrink: 0;
+        }
+
+        .search-container input {
+            flex: 1;
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-size: 15px;
+            outline: none;
+            text-align: center;
+        }
+
+        .home-section {
+            width: 100%;
+            max-width: 480px;
+            text-align: left;
+        }
+
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .speed-tile {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            position: relative;
+        }
+        .speed-tile:active { transform: scale(0.94); }
+
+        .tile-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--accent-grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .tile-label {
+            font-size: 11px;
+            color: var(--text-color);
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+        }
+
+        .tile-delete {
+            position: absolute;
+            top: 2px; right: 2px;
+            width: 16px; height: 16px;
+            background: rgba(255,0,0,0.3);
+            color: #ff4b2b;
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* AYARLAR MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 999999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 380px;
+            padding: 20px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        select {
+            background: var(--bg-card);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .close-btn {
+            background: var(--accent-grad);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius:
