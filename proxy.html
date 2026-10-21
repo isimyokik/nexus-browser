@@ -14,7 +14,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         const targetUrl = urlParams.get('url');
         if (targetUrl) {
-            // Güvenli ve hatasız açılış için yönlendirici tünel
             document.getElementById('target-frame').src = targetUrl;
         }
     </script>
