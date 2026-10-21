@@ -14,6 +14,7 @@
             --accent-grad: linear-gradient(135deg, #ff007f, #7928ca, #00dfd8);
             --header-bg: rgba(18, 21, 32, 0.95);
             --border-color: rgba(255, 255, 255, 0.1);
+            --vpn-glow: transparent;
         }
 
         body.theme-light {
@@ -24,6 +25,10 @@
             --text-dim: #64748b;
             --header-bg: rgba(255, 255, 255, 0.95);
             --border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body.vpn-active {
+            --vpn-glow: rgba(16, 185, 129, 0.2);
         }
 
         * {
@@ -44,16 +49,19 @@
             transition: background-color 0.3s;
         }
 
-        /* AÇILIR KAPANIR ÜST BAR (Aşağı kaydırınca gizlenir, yukarı çıkınca açılır) */
+        /* AÇILIR KAPANIR ÜST BAR */
         .top-fixed-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             z-index: 99999;
-            background: var(--bg-secondary);
+            background: var(--header-bg);
+            backdrop-filter: blur(12px);
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border-bottom: 1px solid var(--border-color);
             transition: transform 0.3s ease-in-out;
+            background-color: var(--vpn-glow);
         }
 
         .top-fixed-container.hidden-bar {
@@ -98,6 +106,10 @@
             border-color: transparent;
         }
 
+        .tab-item.incognito-tab {
+            border: 1px solid #a855f7;
+        }
+
         .tab-close {
             font-size: 12px;
             border-radius: 50%;
@@ -132,8 +144,6 @@
             align-items: center;
             gap: 8px;
             padding: 8px 12px;
-            background: var(--header-bg);
-            backdrop-filter: blur(12px);
         }
 
         .nav-btn {
@@ -353,6 +363,8 @@
             border-bottom: 1px solid var(--border-color);
         }
 
+        select, input[type="checkbox"] { accent-color: #ff007f; }
+
         select {
             background: var(--bg-card);
             color: var(--text-color);
@@ -373,7 +385,7 @@
         }
     </style>
 </head>
-<body onscroll="handleScroll(event)">
+<body>
 
     <!-- AÇILIR KAPANIR ÜST KISIM -->
     <div class="top-fixed-container" id="top-container">
@@ -428,6 +440,16 @@
             </div>
 
             <div class="setting-row">
+                <span>VPN / Güvenli Tünel</span>
+                <input type="checkbox" id="setting-vpn" onchange="updateSettings()">
+            </div>
+
+            <div class="setting-row">
+                <span>Varsayılan Gizli Mod</span>
+                <input type="checkbox" id="setting-incognito" onchange="updateSettings()">
+            </div>
+
+            <div class="setting-row">
                 <span>Arama Motoru</span>
                 <select id="setting-search" onchange="updateSettings()">
                     <option value="google">Google</option>
@@ -453,6 +475,8 @@
             activeTabId: null,
             bookmarks: JSON.parse(localStorage.getItem('neseli_bookmarks') || '[{"name":"Google","url":"https://www.google.com"},{"name":"YouTube","url":"https://www.youtube.com"},{"name":"GitHub","url":"https://github.com"}]'),
             settings: JSON.parse(localStorage.getItem('neseli_settings') || JSON.stringify({
+                vpn: false,
+                incognito: false,
                 searchEngine: 'google',
                 theme: 'dark'
             }))
@@ -477,7 +501,7 @@
             const currentScroll = e.target.scrollTop;
             const topContainer = document.getElementById('top-container');
 
-            if (currentScroll > lastScrollTop && currentScroll > 40) {
+            if (currentScroll > lastScrollTop && currentScroll > 30) {
                 topContainer.classList.add('hidden-bar');
             } else {
                 topContainer.classList.remove('hidden-bar');
@@ -486,6 +510,8 @@
         }
 
         function applySettingsUI() {
+            document.getElementById('setting-vpn').checked = state.settings.vpn;
+            document.getElementById('setting-incognito').checked = state.settings.incognito;
             document.getElementById('setting-search').value = state.settings.searchEngine;
             document.getElementById('setting-theme').value = state.settings.theme;
 
@@ -493,9 +519,13 @@
             if (state.settings.theme === 'light') {
                 document.body.classList.add('theme-light');
             }
+
+            document.body.classList.toggle('vpn-active', state.settings.vpn);
         }
 
         function updateSettings() {
+            state.settings.vpn = document.getElementById('setting-vpn').checked;
+            state.settings.incognito = document.getElementById('setting-incognito').checked;
             state.settings.searchEngine = document.getElementById('setting-search').value;
             state.settings.theme = document.getElementById('setting-theme').value;
 
@@ -510,7 +540,8 @@
 
         function createNewTab() {
             const id = 'tab_' + Date.now();
-            state.tabs.push({ id, title: 'Yeni Sekme', url: null });
+            const isInc = state.settings.incognito;
+            state.tabs.push({ id, title: isInc ? 'Gizli Sekme' : 'Yeni Sekme', url: null, isIncognito: isInc });
             switchTab(id);
         }
 
@@ -547,10 +578,10 @@
 
             state.tabs.forEach(tab => {
                 const el = document.createElement('div');
-                el.className = `tab-item ${tab.id === state.activeTabId ? 'active' : ''}`;
+                el.className = `tab-item ${tab.id === state.activeTabId ? 'active' : ''} ${tab.isIncognito ? 'incognito-tab' : ''}`;
                 el.onclick = () => switchTab(tab.id);
                 el.innerHTML = `
-                    <span>🎈 ${tab.title}</span>
+                    <span>${tab.isIncognito ? '🕵️' : '🎈'} ${tab.title}</span>
                     <span class="tab-close" onclick="closeTab('${tab.id}', event)">✕</span>
                 `;
                 tabsBar.appendChild(el);
@@ -590,7 +621,7 @@
             const tab = state.tabs.find(t => t.id === state.activeTabId);
             if (tab) {
                 tab.url = null;
-                tab.title = 'Yeni Sekme';
+                tab.title = tab.isIncognito ? 'Gizli Sekme' : 'Yeni Sekme';
                 switchTab(tab.id);
             }
         }
@@ -635,4 +666,3 @@
     </script>
 </body>
 </html>
-
