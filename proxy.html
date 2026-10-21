@@ -9,13 +9,13 @@
     </style>
 </head>
 <body>
-    <iframe id="target-frame"></iframe>
+    <iframe id="target-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const targetUrl = urlParams.get('url');
         if (targetUrl) {
-            // Sitelerin yüklenmesini sağlayan güvenli köprü
-            document.getElementById('target-frame').src = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
+            // Güvenli ve hatasız açılış için yönlendirici tünel
+            document.getElementById('target-frame').src = targetUrl;
         }
     </script>
 </body>
