@@ -1,1074 +1,768 @@
-```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nexus Browser</title>
-    <!-- FontAwesome 6 Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Inter & Outfit -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <title>Neşeli Tarayıcı 🎈</title>
     <style>
         :root {
-            --bg-main: #090a0f;
-            --bg-surface: #121520;
-            --bg-card: #1a1e2e;
-            --bg-card-hover: #24293e;
-            --bg-input: #0b0d14;
+            --bg-primary: #0f1015;
+            --bg-secondary: #181a24;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --text-color: #f3f4f6;
+            --text-dim: #9ca3af;
+            --accent-grad: linear-gradient(135deg, #ff007f, #7928ca, #00dfd8);
+            --header-bg: rgba(24, 26, 36, 0.85);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --vpn-glow: transparent;
+        }
 
-            --vpn-active-bg: rgba(16, 185, 129, 0.22);
-            --vpn-active-border: rgba(16, 185, 129, 0.55);
-            --vpn-active-glow: rgba(16, 185, 129, 0.35);
+        body.theme-light {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(0, 0, 0, 0.04);
+            --text-color: #1e293b;
+            --text-dim: #64748b;
+            --header-bg: rgba(255, 255, 255, 0.9);
+            --border-color: rgba(0, 0, 0, 0.1);
+        }
 
-            --accent-primary: #6366f1;
-            --accent-purple: #a855f7;
-            --accent-glow: rgba(99, 102, 241, 0.3);
-
-            --incognito-bg: #050507;
-            --incognito-surface: #0e0e14;
-            --incognito-accent: #a855f7;
-
-            --text-main: #e2e8f0;
-            --text-bright: #ffffff;
-            --text-muted: #64748b;
-            --border-color: rgba(255, 255, 255, 0.08);
-
-            --fixed-header-height: 88px;
-            --sidebar-width: 52px;
-            --mobile-nav-height: 52px;
+        body.vpn-active {
+            --vpn-glow: rgba(16, 185, 129, 0.25);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            user-select: none;
             -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
+            background-color: var(--bg-primary);
+            color: var(--text-color);
             height: 100vh;
-            width: 100vw;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        body.incognito-mode {
-            --bg-main: var(--incognito-bg);
-            --bg-surface: var(--incognito-surface);
-            --accent-primary: var(--incognito-accent);
-        }
-
-        /* --- FIXED HEADER --- */
-        .fixed-header {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            height: var(--fixed-header-height);
-            background-color: var(--bg-surface);
-            border-bottom: 1px solid var(--border-color);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 4px 8px 6px 8px;
-            transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
-        }
-
-        /* DYNAMIC TRANSPARENT GREEN WHEN VPN IS ON */
-        .fixed-header.vpn-active {
-            background-color: var(--vpn-active-bg) !important;
-            border-bottom: 1.5px solid var(--vpn-active-border);
-            box-shadow: 0 4px 20px var(--vpn-active-glow);
-            backdrop-filter: blur(10px);
-        }
-
-        /* TAB BAR */
-        .tabs-header-row {
+        /* Sekme BARI */
+        .tabs-bar {
             display: flex;
             align-items: center;
+            background: var(--bg-secondary);
+            padding: 4px 6px;
             gap: 4px;
             overflow-x: auto;
+            border-bottom: 1px solid var(--border-color);
             scrollbar-width: none;
-            height: 32px;
         }
-        .tabs-header-row::-webkit-scrollbar { display: none; }
+        .tabs-bar::-webkit-scrollbar { display: none; }
 
-        .tabs-container {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex: 1;
-        }
-
-        .chrome-tab {
+        .tab-item {
             display: flex;
             align-items: center;
             gap: 6px;
-            background: #0a0c12;
-            color: var(--text-muted);
-            padding: 4px 8px;
-            border-radius: 8px 8px 0 0;
-            font-size: 11px;
-            font-weight: 500;
-            min-width: 80px;
-            max-width: 130px;
+            background: var(--bg-card);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            max-width: 140px;
+            min-width: 90px;
             cursor: pointer;
             border: 1px solid transparent;
-            border-bottom: none;
-            transition: all 0.2s;
-            height: 30px;
-        }
-
-        .chrome-tab.active {
-            background-color: var(--bg-main);
-            color: var(--text-bright);
-            border-color: var(--border-color);
-        }
-
-        .chrome-tab.is-incognito {
-            border-top: 2px solid var(--incognito-accent);
-        }
-
-        .chrome-tab .tab-title {
-            flex: 1;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            font-family: 'Outfit', sans-serif;
+            transition: all 0.2s;
         }
 
-        .chrome-tab .tab-close {
+        .tab-item.active {
+            background: var(--accent-grad);
+            color: white;
+            font-weight: bold;
+        }
+
+        .tab-item.incognito {
+            border: 1px solid #a855f7;
+        }
+
+        .tab-close {
+            font-size: 12px;
+            border-radius: 50%;
             width: 16px;
             height: 16px;
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 9px;
             opacity: 0.7;
         }
-        .chrome-tab .tab-close:hover {
-            background: rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-        }
+        .tab-close:hover { opacity: 1; background: rgba(0,0,0,0.2); }
 
-        .tab-add-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-bright);
+        .add-tab-btn {
+            background: var(--accent-grad);
+            border: none;
+            color: white;
             width: 30px;
             height: 30px;
-            border-radius: 6px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            font-size: 12px;
-            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(255, 0, 127, 0.3);
         }
-        .tab-add-btn:active { transform: scale(0.92); }
 
-        /* ADDRESS BAR & COMPACT CONTROL ROW */
-        .address-bar-row {
+        /* NAVBAR HEADER (SABİT) */
+        .header-bar {
             display: flex;
             align-items: center;
             gap: 6px;
-            height: 42px;
-            width: 100%;
+            padding: 8px 10px;
+            background: var(--header-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--vpn-glow);
+            z-index: 1000;
+            transition: background 0.3s, border-color 0.3s;
         }
 
-        .compact-btn {
+        .header-bottom {
+            order: 10;
+            border-top: 1px solid var(--border-color);
+            border-bottom: none;
+        }
+
+        .nav-btn {
             width: 34px;
             height: 34px;
-            min-width: 34px;
+            border: none;
+            background: var(--bg-card);
+            color: var(--text-color);
+            border-radius: 10px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform 0.1s, background 0.2s;
+        }
+        .nav-btn:active { transform: scale(0.92); }
+
+        .url-box {
+            flex: 1;
+            display: flex;
+            align-items: center;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            color: var(--text-bright);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
-
-        .compact-btn:hover {
-            background-color: var(--bg-card-hover);
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-        }
-
-        .compact-btn:active { transform: scale(0.90); }
-
-        .omnibox-box {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            background-color: var(--bg-input);
-            border: 1.5px solid var(--border-color);
             border-radius: 12px;
             padding: 0 10px;
-            gap: 8px;
-            height: 36px;
-            min-width: 0;
-            transition: all 0.25s ease;
-        }
-
-        .omnibox-box:focus-within {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 10px var(--accent-glow);
-            background-color: #050609;
-        }
-
-        .omnibox-input {
-            flex: 1;
-            width: 100%;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: var(--text-bright);
-            font-size: 13px;
-            font-family: inherit;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .omnibox-input::placeholder { color: var(--text-muted); font-size: 12px; }
-
-        /* --- WORKSPACE LAYOUT --- */
-        .main-workspace {
-            margin-top: var(--fixed-header-height);
-            height: calc(100vh - var(--fixed-header-height));
-            display: flex;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* OPERA SIDEBAR */
-        .opera-sidebar {
-            width: var(--sidebar-width);
-            background-color: #06070a;
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px 0;
-            gap: 10px;
-            z-index: 80;
-            flex-shrink: 0;
-        }
-
-        .sidebar-icon {
-            width: 38px;
             height: 38px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 15px;
-            transition: all 0.2s;
+            transition: border-color 0.2s;
+        }
+        .url-box:focus-within {
+            border-color: #ff007f;
         }
 
-        .sidebar-icon:hover, .sidebar-icon.active {
-            background-color: var(--bg-card);
-            color: var(--accent-primary);
-        }
-
-        .sidebar-divider {
-            width: 20px;
-            height: 1px;
-            background-color: var(--border-color);
-        }
-
-        /* VIEWPORT CONTAINERS */
-        .viewport-container {
-            flex: 1;
-            position: relative;
-            background-color: var(--bg-main);
-            overflow: hidden;
-        }
-
-        .tab-view {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            display: none;
-            flex-direction: column;
+        .url-input {
             width: 100%;
-            height: 100%;
-        }
-
-        .tab-view.active { display: flex; }
-
-        /* OPERA SPEED DIAL */
-        .speed-dial {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: radial-gradient(circle at top center, #151828 0%, var(--bg-main) 80%);
-        }
-
-        .incognito-banner {
-            display: none;
-            background: rgba(168, 85, 247, 0.12);
-            border: 1px solid var(--incognito-accent);
-            border-radius: 10px;
-            padding: 8px 12px;
-            margin-bottom: 16px;
-            width: 100%;
-            max-width: 480px;
-            text-align: center;
-            color: var(--incognito-accent);
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .incognito-banner.active { display: block; }
-
-        .brand-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .brand-header i {
-            font-size: 30px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .brand-header h1 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--text-bright);
-        }
-
-        .dial-search-box {
-            width: 100%;
-            max-width: 480px;
-            display: flex;
-            align-items: center;
-            background: rgba(26, 30, 46, 0.8);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            padding: 0 12px;
-            margin-bottom: 24px;
-            height: 44px;
-        }
-
-        .dial-search-box i { color: var(--text-muted); margin-right: 10px; font-size: 15px; }
-        .dial-search-box input {
-            flex: 1;
             background: transparent;
             border: none;
-            outline: none;
-            color: var(--text-bright);
+            color: var(--text-color);
             font-size: 14px;
-            font-family: inherit;
+            outline: none;
         }
 
-        .tiles-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-            gap: 12px;
-            width: 100%;
-            max-width: 480px;
-        }
-
-        .tile-item {
+        /* İÇERİK ALANI */
+        .app-body {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-        }
-
-        .tile-icon-box {
-            width: 50px;
-            height: 50px;
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            transition: all 0.2s;
-        }
-
-        .tile-item:hover .tile-icon-box {
-            transform: translateY(-3px);
-            border-color: var(--accent-primary);
-        }
-
-        .tile-name {
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--text-main);
-            font-family: 'Outfit', sans-serif;
-        }
-
-        /* IFRAME FRAMEWORK */
-        .iframe-wrapper {
-            flex: 1;
-            width: 100%;
-            height: 100%;
-            position: relative;
-            background: #ffffff;
         }
 
         iframe {
             width: 100%;
             height: 100%;
             border: none;
-        }
-
-        .proxy-info-bar {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            padding: 6px 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-
-        .proxy-info-bar strong { color: #10b981; }
-
-        .open-out-btn {
-            background: var(--accent-primary);
-            border: none;
-            color: #fff;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        /* MODALS & SWITCH UI */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
-            z-index: 10000;
+            background: white;
             display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
         }
 
-        .modal-overlay.active { display: flex; }
+        iframe.active {
+            display: block;
+        }
 
-        .modal-card {
-            background-color: var(--bg-surface);
+        /* NEŞELİ ANA SAYFA */
+        .home-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 30px 20px;
+            overflow-y: auto;
+            text-align: center;
+        }
+
+        .brand-logo {
+            font-size: 42px;
+            font-weight: 900;
+            background: var(--accent-grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+            letter-spacing: -1px;
+        }
+
+        .brand-sub {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .home-section {
+            width: 100%;
+            max-width: 480px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .section-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 12px;
+        }
+
+        .speed-tile {
+            background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 16px;
+            padding: 12px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+        .speed-tile:active { transform: scale(0.94); }
+
+        .tile-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--accent-grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .tile-label {
+            font-size: 11px;
+            max-width: 70px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .add-tile-btn {
+            border: 2px dashed var(--border-color);
+            background: transparent;
+        }
+
+        /* AYARLAR MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
             width: 100%;
-            max-width: 380px;
-            padding: 18px;
-            box-shadow: 0 16px 32px rgba(0,0,0,0.8);
-            max-height: 90vh;
+            max-width: 400px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-height: 85vh;
             overflow-y: auto;
         }
 
         .modal-header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .modal-header h3 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 17px;
-            color: var(--text-bright);
-            display: flex;
             align-items: center;
-            gap: 8px;
-        }
-
-        .close-modal-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            width: 30px; height: 30px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
+            margin-bottom: 20px;
         }
 
         .setting-row {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             padding: 12px 0;
             border-bottom: 1px solid var(--border-color);
         }
 
         .setting-label {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
+            font-size: 14px;
+            font-weight: 500;
         }
 
-        .setting-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-bright);
+        select, input[type="checkbox"] {
+            accent-color: #ff007f;
         }
 
-        .setting-desc {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-
-        /* TOGGLE SWITCH STYLING */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-            flex-shrink: 0;
-        }
-
-        .switch input { opacity: 0; width: 0; height: 0; }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #2a2d3d;
-            transition: .3s;
-            border-radius: 24px;
+        select {
+            background: var(--bg-card);
+            color: var(--text-color);
             border: 1px solid var(--border-color);
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            transition: .3s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: var(--accent-primary);
-        }
-
-        input:checked + .slider.green-switch {
-            background-color: #10b981;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(20px);
-        }
-
-        .select-box {
-            width: 100%;
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            color: var(--text-bright);
-            padding: 10px;
-            border-radius: 10px;
+            padding: 6px 10px;
+            border-radius: 8px;
             outline: none;
-            font-size: 13px;
-            margin-top: 6px;
         }
 
-        .action-btn-full {
-            width: 100%;
-            padding: 10px;
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #ef4444;
+        .close-btn {
+            background: var(--accent-grad);
+            border: none;
+            color: white;
+            padding: 8px 16px;
             border-radius: 10px;
-            font-size: 12px;
-            font-weight: 600;
+            font-weight: bold;
             cursor: pointer;
-            margin-top: 14px;
-            transition: all 0.2s;
-        }
-
-        .action-btn-full:active { transform: scale(0.98); }
-
-        /* MOBILE (< 600px) */
-        @media (max-width: 600px) {
-            .opera-sidebar {
-                position: fixed;
-                bottom: 0; left: 0; right: 0;
-                width: 100%;
-                height: var(--mobile-nav-height);
-                flex-direction: row;
-                justify-content: space-around;
-                padding: 0 6px;
-                border-right: none;
-                border-top: 1px solid var(--border-color);
-                background-color: rgba(9, 10, 15, 0.95);
-            }
-
-            .main-workspace { padding-bottom: var(--mobile-nav-height); }
-            .tiles-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
-            .tile-icon-box { width: 44px; height: 44px; font-size: 16px; border-radius: 12px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- SABİT ÜST MENÜ (VPN AKTİF İKEN ŞEFFAF YEŞİL ARKA PLAN) -->
-    <header class="fixed-header vpn-active" id="mainHeader">
-        <!-- Sekmeler Satırı -->
-        <div class="tabs-header-row">
-            <div class="tabs-container" id="tabsContainer"></div>
-            <button class="tab-add-btn" onclick="addNewTab(false)" title="Yeni Sekme"><i class="fa-solid fa-plus"></i></button>
-            <button class="tab-add-btn" style="color: var(--incognito-accent);" onclick="addNewTab(true)" title="Yeni Gizli Sekme"><i class="fa-solid fa-user-secret"></i></button>
-        </div>
-
-        <!-- Gezinti Butonları, Arama Çubuğu ve Ayarlar İkonu -->
-        <div class="address-bar-row">
-            <button class="compact-btn" onclick="goBack()" title="Geri"><i class="fa-solid fa-arrow-left"></i></button>
-            <button class="compact-btn" onclick="goForward()" title="İleri"><i class="fa-solid fa-arrow-right"></i></button>
-            <button class="compact-btn" onclick="reloadTab()" title="Yenile"><i class="fa-solid fa-rotate-right"></i></button>
-            <button class="compact-btn" onclick="goHome()" title="Ana Sayfa"><i class="fa-solid fa-house"></i></button>
-
-            <!-- Arama Çubuğu -->
-            <div class="omnibox-box">
-                <i class="fa-solid fa-lock" style="font-size: 11px; color: var(--text-muted);"></i>
-                <input type="text" class="omnibox-input" id="omnibox" placeholder="Adres yazın veya arayın..." onkeydown="handleOmniboxKey(event)">
-                <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted); cursor: pointer; font-size: 12px; padding: 4px;" onclick="execOmniboxSearch()"></i>
-            </div>
-
-            <!-- Ayarlar (⚙️) Butonu -->
-            <button class="compact-btn" onclick="openSettingsModal()" title="Ayarlar"><i class="fa-solid fa-gear"></i></button>
-        </div>
-    </header>
-
-    <!-- ANA WORKSPACE -->
-    <div class="main-workspace">
-        <!-- Opera Yan Menü -->
-        <aside class="opera-sidebar">
-            <div class="sidebar-icon active" onclick="goHome()" title="Ana Sayfa"><i class="fa-solid fa-compass"></i></div>
-            <div class="sidebar-icon" onclick="quickNav('https://chatgpt.com')" title="ChatGPT"><i class="fa-solid fa-robot"></i></div>
-            <div class="sidebar-icon" onclick="quickNav('https://web.whatsapp.com')" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></div>
-            <div class="sidebar-divider"></div>
-            <div class="sidebar-icon" onclick="openPrivacyShield()" title="Gizlilik Kalkanı"><i class="fa-solid fa-user-shield"></i></div>
-            <div class="sidebar-icon" onclick="openSettingsModal()" title="Gelişmiş Ayarlar"><i class="fa-solid fa-sliders"></i></div>
-        </aside>
-
-        <!-- Görünüm Alanı -->
-        <main class="viewport-container" id="viewportContainer"></main>
+    <!-- SEKMELER BARI -->
+    <div class="tabs-bar" id="tabs-bar">
+        <!-- Dinamik Sekmeler -->
+        <button class="add-tab-btn" onclick="createNewTab()">+</button>
     </div>
 
-    <!-- GELİŞMİŞ AYARLAR MODAL (KALICI LOCALSTORAGE DESTEKLİ) -->
-    <div class="modal-overlay" id="settingsModal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-sliders" style="color: var(--accent-primary);"></i> Tarayıcı Ayarları</h3>
-                <button class="close-modal-btn" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
-            </div>
+    <!-- SADE SABİT ÜST BAR -->
+    <div class="header-bar" id="header-bar">
+        <button class="nav-btn" onclick="goBack()">←</button>
+        <button class="nav-btn" onclick="goForward()">→</button>
+        <button class="nav-btn" onclick="reloadTab()">↻</button>
+        <button class="nav-btn" onclick="goHome()">🎈</button>
+        
+        <div class="url-box">
+            <input type="text" id="url-input" class="url-input" placeholder="Google'da ara veya URL yazın..." onkeydown="handleUrlKey(event)">
+        </div>
 
-            <!-- VPN AÇMA / KAPAMA TOGGLE -->
-            <div class="setting-row">
-                <div class="setting-label">
-                    <span class="setting-title">Yerleşik VPN Tüneli</span>
-                    <span class="setting-desc">Trafiği şifreli proxy üzerinden geçirir</span>
+        <button class="nav-btn" onclick="toggleSettingsModal()">⚙️</button>
+    </div>
+
+    <!-- İÇERİK BÖLGESİ -->
+    <div class="app-body" id="app-body">
+        
+        <!-- NEŞELİ ANA SAYFA EKRANI -->
+        <div class="home-screen" id="home-screen">
+            <div class="brand-logo">Neşeli 🎈</div>
+            <div class="brand-sub">Hızlı, Özgür ve Renkli Web Deneyimi</div>
+
+            <!-- KULLANICI HIZLI ERİŞİM SİTELERİ -->
+            <div class="home-section">
+                <div class="section-title">
+                    <span>Hızlı Erişim</span>
+                    <button style="background:none; border:none; color:#ff007f; font-size:12px; cursor:pointer;" onclick="promptAddBookmark()">+ Site Ekle</button>
                 </div>
-                <label class="switch">
-                    <input type="checkbox" id="vpnToggle" onchange="toggleVpnSetting(this.checked)">
-                    <span class="slider green-switch"></span>
-                </label>
+                <div class="grid-container" id="bookmarks-grid">
+                    <!-- Dinamik Kullanıcı Kısayolları -->
+                </div>
             </div>
 
-            <!-- SUNUCU SEÇİMİ -->
-            <div style="padding: 8px 0; border-bottom: 1px solid var(--border-color);">
-                <span class="setting-title" style="font-size: 12px;">VPN Sunucu Konumu</span>
-                <select class="select-box" id="proxySelect" onchange="changeProxyNode(this.value)">
-                    <option value="allorigins">🇩🇪 Frankfurt - AllOrigins Tüneli</option>
-                    <option value="corsproxy">🇳🇱 Amsterdam - CorsProxy Yüksek Hız</option>
-                    <option value="ddg">🇬🇧 Londra - DuckDuckGo Ayna</option>
+            <!-- GEÇMİŞ (SON GEZİLEN SİTELER) -->
+            <div class="home-section">
+                <div class="section-title">
+                    <span>Son Gezilenler</span>
+                    <button style="background:none; border:none; color:var(--text-dim); font-size:12px; cursor:pointer;" onclick="clearHistory()">Temizle</button>
+                </div>
+                <div class="grid-container" id="history-grid">
+                    <!-- Dinamik Geçmiş Siteleri -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- AYARLAR MODAL -->
+    <div class="modal" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ayarlar ⚙️</h3>
+                <button class="close-btn" onclick="toggleSettingsModal()">Tamam</button>
+            </div>
+
+            <div class="setting-row">
+                <span class="setting-label">Gelişmiş VPN / Proxy Tüneli</span>
+                <input type="checkbox" id="setting-vpn" onchange="updateSettings()">
+            </div>
+
+            <div class="setting-row">
+                <span class="setting-label">Reklam Engelleme (AdBlock)</span>
+                <input type="checkbox" id="setting-adblock" onchange="updateSettings()">
+            </div>
+
+            <div class="setting-row">
+                <span class="setting-label">Arama Motoru</span>
+                <select id="setting-search" onchange="updateSettings()">
+                    <option value="google">Google</option>
+                    <option value="yandex">Yandex</option>
+                    <option value="bing">Bing</option>
+                    <option value="duckduckgo">DuckDuckGo</option>
                 </select>
             </div>
 
-            <!-- REKLAM ENGELLEME TOGGLE -->
             <div class="setting-row">
-                <div class="setting-label">
-                    <span class="setting-title">Reklam & İzleyici Engelleme</span>
-                    <span class="setting-desc">Zararlı reklamları ve izleyicileri engeller</span>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="adblockToggle" onchange="toggleAdblockSetting(this.checked)">
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <!-- VARSAYILAN GİZLİ MOD TOGGLE -->
-            <div class="setting-row">
-                <div class="setting-label">
-                    <span class="setting-title">Her Zaman Gizli Modda Başla</span>
-                    <span class="setting-desc">Yeni sekmeleri otomatik gizli modda açar</span>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="alwaysIncognitoToggle" onchange="toggleAlwaysIncognitoSetting(this.checked)">
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <!-- VARSAYILAN ARAMA MOTORU -->
-            <div style="padding: 8px 0; border-bottom: 1px solid var(--border-color);">
-                <span class="setting-title" style="font-size: 12px;">Varsayılan Arama Motoru</span>
-                <select class="select-box" id="searchEngineSelect" onchange="changeSearchEngine(this.value)">
-                    <option value="duckduckgo">DuckDuckGo (Gizlilik Odaklı)</option>
-                    <option value="google">Google Search</option>
-                    <option value="bing">Microsoft Bing</option>
+                <span class="setting-label">Görünüm Teması</span>
+                <select id="setting-theme" onchange="updateSettings()">
+                    <option value="dark">Koyu Tema</option>
+                    <option value="light">Açık Tema</option>
+                    <option value="system">Telefon Varsayılanı</option>
                 </select>
             </div>
 
-            <button class="action-btn-full" onclick="clearLocalData()"><i class="fa-solid fa-trash"></i> Verileri ve Önbeleği Temizle</button>
-        </div>
-    </div>
-
-    <!-- GİZLİLİK KALKANI MODAL -->
-    <div class="modal-overlay" id="privacyModal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-user-shield" style="color: var(--accent-purple);"></i> Firefox Gizlilik Kalkanı</h3>
-                <button class="close-modal-btn" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="setting-row">
+                <span class="setting-label">Adres Barı Konumu</span>
+                <select id="setting-bar-pos" onchange="updateSettings()">
+                    <option value="top">Üstte</option>
+                    <option value="bottom">Altta</option>
+                </select>
             </div>
-            <div style="background: var(--bg-card); padding: 12px; border-radius: 10px; font-size: 12px; line-height: 1.8;">
-                <p>🕵️‍♂️ Gizli Mod: <strong id="privacyIncognitoStatus" style="color: #10b981;">Pasif</strong></p>
-                <p>🛡️ Reklam Engelleme: <strong id="privacyAdblockStatus" style="color: #10b981;">Aktif</strong></p>
-                <p>🌐 VPN Tüneli: <strong id="privacyVpnStatus" style="color: #10b981;">Aktif</strong></p>
-                <p>🔒 Güvenlik Seviyesi: <strong>256-Bit SSL/TLS Şifreleme</strong></p>
+
+            <div class="setting-row">
+                <span class="setting-label">Gizli Mod (Otomatik)</span>
+                <input type="checkbox" id="setting-incognito" onchange="updateSettings()">
             </div>
         </div>
     </div>
 
     <script>
-        // --- PERSISTENT SETTINGS STATE (LOCALSTORAGE) ---
-        let userSettings = {
-            vpnActive: true,
-            proxyNode: 'allorigins',
-            adblockActive: true,
-            alwaysIncognito: false,
-            searchEngine: 'duckduckgo'
+        // DURUM YÖNETİMİ & LOCALSTORAGE
+        let state = {
+            tabs: [],
+            activeTabId: null,
+            bookmarks: JSON.parse(localStorage.getItem('neseli_bookmarks') || '[]'),
+            history: JSON.parse(localStorage.getItem('neseli_history') || '[]'),
+            settings: JSON.parse(localStorage.getItem('neseli_settings') || JSON.stringify({
+                vpn: false,
+                adblock: true,
+                searchEngine: 'google',
+                theme: 'dark',
+                barPos: 'top',
+                incognito: false
+            }))
         };
 
-        // State Varsayılanları
-        let tabs = [];
-        let activeTabId = null;
+        const SEARCH_ENGINES = {
+            google: 'https://www.google.com/search?q=',
+            yandex: 'https://yandex.com.tr/search/?text=',
+            bing: 'https://www.bing.com/search?q=',
+            duckduckgo: 'https://duckduckgo.com/?q='
+        };
 
-        const tiles = [
-            { name: 'Google', url: 'https://www.google.com', icon: 'fa-brands fa-google', color: '#ea4335' },
-            { name: 'DuckDuckGo', url: 'https://html.duckduckgo.com/html/', icon: 'fa-solid fa-shield-dog', color: '#de5833' },
-            { name: 'YouTube', url: 'https://m.youtube.com', icon: 'fa-brands fa-youtube', color: '#ff0000' },
-            { name: 'Wikipedia', url: 'https://tr.wikipedia.org', icon: 'fa-solid fa-book', color: '#ffffff' },
-            { name: 'Reddit', url: 'https://www.reddit.com', icon: 'fa-brands fa-reddit-alien', color: '#ff4500' },
-            { name: 'ChatGPT', url: 'https://chatgpt.com', icon: 'fa-solid fa-robot', color: '#10a37f' }
-        ];
-
+        // BAŞLANGIÇ
         window.onload = () => {
-            loadSavedSettings();
-            addNewTab(userSettings.alwaysIncognito);
+            applySettingsUI();
+            renderBookmarks();
+            renderHistory();
+            createNewTab();
         };
 
-        // LocalStorage Yükleme
-        function loadSavedSettings() {
-            const saved = localStorage.getItem('nexus_browser_settings');
-            if (saved) {
-                try {
-                    userSettings = { ...userSettings, ...JSON.parse(saved) };
-                } catch(e) { console.error('Ayarlar yüklenemedi:', e); }
+        // AYARLARI UYGULA
+        function applySettingsUI() {
+            document.getElementById('setting-vpn').checked = state.settings.vpn;
+            document.getElementById('setting-adblock').checked = state.settings.adblock;
+            document.getElementById('setting-search').value = state.settings.searchEngine;
+            document.getElementById('setting-theme').value = state.settings.theme;
+            document.getElementById('setting-bar-pos').value = state.settings.barPos;
+            document.getElementById('setting-incognito').checked = state.settings.incognito;
+
+            // Tema Ayarla
+            document.body.classList.remove('theme-light');
+            if (state.settings.theme === 'light') {
+                document.body.classList.add('theme-light');
+            } else if (state.settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                document.body.classList.add('theme-light');
             }
-            applySettingsToUI();
-        }
 
-        function saveSettings() {
-            localStorage.setItem('nexus_browser_settings', JSON.stringify(userSettings));
-            applySettingsToUI();
-        }
+            // VPN Efekti
+            document.body.classList.toggle('vpn-active', state.settings.vpn);
 
-        function applySettingsToUI() {
-            const mainHeader = document.getElementById('mainHeader');
-            
-            // Header VPN rengi güncellemesi
-            if (userSettings.vpnActive) {
-                mainHeader.classList.add('vpn-active');
+            // Bar Konumu
+            const header = document.getElementById('header-bar');
+            if (state.settings.barPos === 'bottom') {
+                header.classList.add('header-bottom');
             } else {
-                mainHeader.classList.remove('vpn-active');
+                header.classList.remove('header-bottom');
             }
-
-            // Modal Input Elemanları Senkronizasyonu
-            document.getElementById('vpnToggle').checked = userSettings.vpnActive;
-            document.getElementById('proxySelect').value = userSettings.proxyNode;
-            document.getElementById('adblockToggle').checked = userSettings.adblockActive;
-            document.getElementById('alwaysIncognitoToggle').checked = userSettings.alwaysIncognito;
-            document.getElementById('searchEngineSelect').value = userSettings.searchEngine;
         }
 
-        // --- SEKMELER ---
-        function addNewTab(isIncognito = false) {
-            const finalIncognito = isIncognito || userSettings.alwaysIncognito;
-            const id = 'tab-' + Date.now();
+        function updateSettings() {
+            state.settings.vpn = document.getElementById('setting-vpn').checked;
+            state.settings.adblock = document.getElementById('setting-adblock').checked;
+            state.settings.searchEngine = document.getElementById('setting-search').value;
+            state.settings.theme = document.getElementById('setting-theme').value;
+            state.settings.barPos = document.getElementById('setting-bar-pos').value;
+            state.settings.incognito = document.getElementById('setting-incognito').checked;
+
+            localStorage.setItem('neseli_settings', JSON.stringify(state.settings));
+            applySettingsUI();
+        }
+
+        function toggleSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        // SEKME YÖNETİMİ
+        function createNewTab(url = null) {
+            const id = 'tab_' + Date.now();
             const tab = {
                 id: id,
-                title: finalIncognito ? 'Gizli Sekme' : 'Yeni Sekme',
-                url: 'about:blank',
-                isIncognito: finalIncognito
+                title: 'Yeni Sekme',
+                url: url,
+                isIncognito: state.settings.incognito
             };
 
-            tabs.push(tab);
-            renderTabHeader(tab);
-            renderTabView(tab);
+            state.tabs.push(tab);
+            
+            // IFRAME Oluştur
+            if (url) {
+                const iframe = document.createElement('iframe');
+                iframe.id = 'iframe_' + id;
+                iframe.src = formatUrl(url);
+                document.getElementById('app-body').appendChild(iframe);
+            }
+
             switchTab(id);
-        }
-
-        function renderTabHeader(tab) {
-            const container = document.getElementById('tabsContainer');
-            const el = document.createElement('div');
-            el.className = `chrome-tab ${tab.isIncognito ? 'is-incognito' : ''}`;
-            el.id = `header-${tab.id}`;
-            el.onclick = () => switchTab(tab.id);
-            el.innerHTML = `
-                <i class="fa-solid ${tab.isIncognito ? 'fa-user-secret' : 'fa-globe'}" style="color:${tab.isIncognito ? 'var(--incognito-accent)' : 'var(--accent-primary)'}"></i>
-                <span class="tab-title" id="title-${tab.id}">${tab.title}</span>
-                <span class="tab-close" onclick="closeTab('${tab.id}', event)"><i class="fa-solid fa-xmark"></i></span>
-            `;
-            container.appendChild(el);
-        }
-
-        function renderTabView(tab) {
-            const viewport = document.getElementById('viewportContainer');
-            const view = document.createElement('div');
-            view.className = 'tab-view';
-            view.id = `view-${tab.id}`;
-
-            view.innerHTML = `
-                <div class="speed-dial" id="dial-${tab.id}">
-                    <div class="incognito-banner ${tab.isIncognito ? 'active' : ''}">
-                        <i class="fa-solid fa-user-secret"></i> Gizli Mod Aktif: Gezinti geçmişi ve çerezler kaydedilmez.
-                    </div>
-                    
-                    <div class="brand-header">
-                        <i class="fa-solid fa-bolt"></i>
-                        <h1>Nexus Browser</h1>
-                    </div>
-
-                    <div class="dial-search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" placeholder="Web'de arayın..." onkeydown="handleDialSearch(event, '${tab.id}')">
-                    </div>
-
-                    <div class="tiles-grid">
-                        ${tiles.map(t => `
-                            <div class="tile-item" onclick="loadTabUrl('${tab.id}', '${t.url}')">
-                                <div class="tile-icon-box" style="color: ${t.color};">
-                                    <i class="${t.icon}"></i>
-                                </div>
-                                <span class="tile-name">${t.name}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <div class="iframe-wrapper" id="framebox-${tab.id}" style="display:none;">
-                    <div class="proxy-info-bar">
-                        <span><i class="fa-solid fa-shield-halved"></i> Bağlantı: <strong id="nodeLabel-${tab.id}">AllOrigins Tüneli</strong></span>
-                        <button class="open-out-btn" onclick="openExternal('${tab.id}')">Harici Aç</button>
-                    </div>
-                    <iframe id="iframe-${tab.id}" src="" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
-                </div>
-            `;
-            viewport.appendChild(view);
+            renderTabs();
         }
 
         function switchTab(id) {
-            activeTabId = id;
-            document.querySelectorAll('.chrome-tab').forEach(e => e.classList.remove('active'));
-            document.querySelectorAll('.tab-view').forEach(e => e.classList.remove('active'));
+            state.activeTabId = id;
+            const tab = state.tabs.find(t => t.id === id);
 
-            document.getElementById(`header-${id}`)?.classList.add('active');
-            document.getElementById(`view-${id}`)?.classList.add('active');
+            // Tüm Iframe'leri Gizle
+            document.querySelectorAll('iframe').forEach(f => f.classList.remove('active'));
+            const homeScreen = document.getElementById('home-screen');
 
-            const tab = tabs.find(t => t.id === id);
-            if (tab) {
-                document.getElementById('omnibox').value = tab.url === 'about:blank' ? '' : tab.url;
-                if (tab.isIncognito) {
-                    document.body.classList.add('incognito-mode');
-                } else {
-                    document.body.classList.remove('incognito-mode');
+            if (tab && tab.url) {
+                homeScreen.style.display = 'none';
+                const activeIframe = document.getElementById('iframe_' + id);
+                if (activeIframe) activeIframe.classList.add('active');
+                document.getElementById('url-input').value = tab.url;
+            } else {
+                homeScreen.style.display = 'flex';
+                document.getElementById('url-input').value = '';
+            }
+
+            renderTabs();
+        }
+
+        function closeTab(id, event) {
+            if (event) event.stopPropagation();
+            const iframe = document.getElementById('iframe_' + id);
+            if (iframe) iframe.remove();
+
+            state.tabs = state.tabs.filter(t => t.id !== id);
+
+            if (state.tabs.length === 0) {
+                createNewTab();
+            } else if (state.activeTabId === id) {
+                switchTab(state.tabs[state.tabs.length - 1].id);
+            } else {
+                renderTabs();
+            }
+        }
+
+        function renderTabs() {
+            const tabsBar = document.getElementById('tabs-bar');
+            tabsBar.innerHTML = '';
+
+            state.tabs.forEach(tab => {
+                const el = document.createElement('div');
+                el.className = `tab-item ${tab.id === state.activeTabId ? 'active' : ''} ${tab.isIncognito ? 'incognito' : ''}`;
+                el.onclick = () => switchTab(tab.id);
+
+                el.innerHTML = `
+                    <span>${tab.isIncognito ? '🕵️' : '🎈'} ${tab.title}</span>
+                    <span class="tab-close" onclick="closeTab('${tab.id}', event)">✕</span>
+                `;
+                tabsBar.appendChild(el);
+            });
+
+            const addBtn = document.createElement('button');
+            addBtn.className = 'add-tab-btn';
+            addBtn.innerText = '+';
+            addBtn.onclick = () => createNewTab();
+            tabsBar.appendChild(addBtn);
+        }
+
+        // ADRES VE ARAMA
+        function handleUrlKey(e) {
+            if (e.key === 'Enter') {
+                let val = document.getElementById('url-input').value.trim();
+                if (val) {
+                    navigateTo(val);
                 }
             }
         }
 
-        function closeTab(id, e) {
-            e.stopPropagation();
-            if (tabs.length === 1) {
-                loadTabUrl(id, 'about:blank');
-                return;
+        function formatUrl(val) {
+            if (val.startsWith('http://') || val.startsWith('https://')) {
+                return state.settings.vpn ? 'https://api.allorigins.win/raw?url=' + encodeURIComponent(val) : val;
             }
-
-            tabs = tabs.filter(t => t.id !== id);
-            document.getElementById(`header-${id}`)?.remove();
-            document.getElementById(`view-${id}`)?.remove();
-
-            if (activeTabId === id) {
-                switchTab(tabs[tabs.length - 1].id);
+            if (val.includes('.') && !val.includes(' ')) {
+                let target = 'https://' + val;
+                return state.settings.vpn ? 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target) : target;
             }
+            let searchEngineUrl = SEARCH_ENGINES[state.settings.searchEngine] || SEARCH_ENGINES.google;
+            return searchEngineUrl + encodeURIComponent(val);
         }
 
-        // --- ARAMA MOTORU & YÖNLENDİRME ---
-        function getSearchUrl(query) {
-            const encoded = encodeURIComponent(query);
-            if (userSettings.searchEngine === 'google') return `https://www.google.com/search?q=${encoded}`;
-            if (userSettings.searchEngine === 'bing') return `https://www.bing.com/search?q=${encoded}`;
-            return `https://html.duckduckgo.com/html/?q=${encoded}`;
-        }
-
-        function loadTabUrl(tabId, query) {
-            let target = query.trim();
-            if (!target) return;
-
-            if (!target.startsWith('http://') && !target.startsWith('https://') && target !== 'about:blank') {
-                if (target.includes('.') && !target.includes(' ')) {
-                    target = 'https://' + target;
-                } else {
-                    target = getSearchUrl(target);
-                }
-            }
-
-            const tab = tabs.find(t => t.id === tabId);
+        function navigateTo(val) {
+            const tab = state.tabs.find(t => t.id === state.activeTabId);
             if (!tab) return;
 
-            tab.url = target;
-            tab.title = target === 'about:blank' ? (tab.isIncognito ? 'Gizli Sekme' : 'Yeni Sekme') : target.replace('https://', '').split('/')[0];
-            document.getElementById(`title-${tabId}`).innerText = tab.title;
+            tab.url = val;
+            tab.title = val.replace('https://', '').replace('http://', '').split('/')[0];
 
-            const dial = document.getElementById(`dial-${tabId}`);
-            const framebox = document.getElementById(`framebox-${tabId}`);
-            const iframe = document.getElementById(`iframe-${tabId}`);
-            const nodeLabel = document.getElementById(`nodeLabel-${tabId}`);
+            let finalSrc = formatUrl(val);
 
-            if (target === 'about:blank') {
-                dial.style.display = 'flex';
-                framebox.style.display = 'none';
-            } else {
-                dial.style.display = 'none';
-                framebox.style.display = 'block';
+            let iframe = document.getElementById('iframe_' + tab.id);
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'iframe_' + tab.id;
+                document.getElementById('app-body').appendChild(iframe);
+            }
+            iframe.src = finalSrc;
 
-                let proxiedUrl = target;
-                if (userSettings.vpnActive) {
-                    if (userSettings.proxyNode === 'allorigins') {
-                        proxiedUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target);
-                        nodeLabel.innerText = 'Frankfurt AllOrigins Tüneli';
-                    } else if (userSettings.proxyNode === 'corsproxy') {
-                        proxiedUrl = 'https://corsproxy.io/?' + encodeURIComponent(target);
-                        nodeLabel.innerText = 'Amsterdam CorsProxy';
-                    } else if (userSettings.proxyNode === 'ddg') {
-                        proxiedUrl = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(target);
-                        nodeLabel.innerText = 'Londra Ayna Tüneli';
-                    }
-                } else {
-                    nodeLabel.innerText = 'Doğrudan Bağlantı (VPN KAPALI)';
-                }
-
-                iframe.src = proxiedUrl;
+            // Gizli Modda Değilse Geçmişe Ekle
+            if (!tab.isIncognito) {
+                addToHistory(tab.title, val);
             }
 
-            if (tabId === activeTabId) {
-                document.getElementById('omnibox').value = target === 'about:blank' ? '' : target;
+            switchTab(tab.id);
+        }
+
+        function goHome() {
+            const tab = state.tabs.find(t => t.id === state.activeTabId);
+            if (tab) {
+                tab.url = null;
+                tab.title = 'Yeni Sekme';
+                const iframe = document.getElementById('iframe_' + tab.id);
+                if (iframe) iframe.remove();
+                switchTab(tab.id);
             }
         }
 
-        // --- AYAR DEĞİŞTİRİCİLER ---
-        function toggleVpnSetting(val) {
-            userSettings.vpnActive = val;
-            saveSettings();
-            if (activeTabId) reloadTab();
+        function goBack() {
+            const iframe = document.getElementById('iframe_' + state.activeTabId);
+            if (iframe && iframe.contentWindow) iframe.contentWindow.history.back();
         }
 
-        function changeProxyNode(val) {
-            userSettings.proxyNode = val;
-            saveSettings();
-            if (activeTabId) reloadTab();
+        function goForward() {
+            const iframe = document.getElementById('iframe_' + state.activeTabId);
+            if (iframe && iframe.contentWindow) iframe.contentWindow.history.forward();
         }
 
-        function toggleAdblockSetting(val) {
-            userSettings.adblockActive = val;
-            saveSettings();
+        function reloadTab() {
+            const iframe = document.getElementById('iframe_' + state.activeTabId);
+            if (iframe) iframe.src = iframe.src;
         }
 
-        function toggleAlwaysIncognitoSetting(val) {
-            userSettings.alwaysIncognito = val;
-            saveSettings();
+        // KISAYOL VE GEÇMİŞ YÖNETİMİ
+        function promptAddBookmark() {
+            let name = prompt("Site Adı:");
+            let url = prompt("Site Adresi (URL):");
+            if (name && url) {
+                state.bookmarks.push({ name, url });
+                localStorage.setItem('neseli_bookmarks', JSON.stringify(state.bookmarks));
+                renderBookmarks();
+            }
         }
 
-        function changeSearchEngine(val) {
-            userSettings.searchEngine = val;
-            saveSettings();
+        function renderBookmarks() {
+            const grid = document.getElementById('bookmarks-grid');
+            grid.innerHTML = '';
+            
+            state.bookmarks.forEach(bm => {
+                const el = document.createElement('a');
+                el.className = 'speed-tile';
+                el.onclick = () => navigateTo(bm.url);
+                el.innerHTML = `
+                    <div class="tile-icon">${bm.name.charAt(0).toUpperCase()}</div>
+                    <div class="tile-label">${bm.name}</div>
+                `;
+                grid.appendChild(el);
+            });
         }
 
-        function clearLocalData() {
-            localStorage.clear();
-            alert('Tüm çerezler, gezinti ayarları ve yerel veriler temizlendi!');
-            location.reload();
+        function addToHistory(title, url) {
+            state.history = state.history.filter(h => h.url !== url);
+            state.history.unshift({ title, url });
+            if (state.history.length > 8) state.history.pop();
+            localStorage.setItem('neseli_history', JSON.stringify(state.history));
+            renderHistory();
         }
 
-        // Event Handler'lar
-        function handleOmniboxKey(e) { if (e.key === 'Enter') execOmniboxSearch(); }
-        function execOmniboxSearch() {
-            const val = document.getElementById('omnibox').value;
-            if (activeTabId && val) loadTabUrl(activeTabId, val);
+        function renderHistory() {
+            const grid = document.getElementById('history-grid');
+            grid.innerHTML = '';
+
+            state.history.forEach(h => {
+                const el = document.createElement('a');
+                el.className = 'speed-tile';
+                el.onclick = () => navigateTo(h.url);
+                el.innerHTML = `
+                    <div class="tile-icon" style="background:var(--bg-card); border:1px solid var(--border-color);">🌐</div>
+                    <div class="tile-label">${h.title}</div>
+                `;
+                grid.appendChild(el);
+            });
         }
 
-        function handleDialSearch(e, tabId) {
-            if (e.key === 'Enter') loadTabUrl(tabId, e.target.value);
+        function clearHistory() {
+            state.history = [];
+            localStorage.removeItem('neseli_history');
+            renderHistory();
         }
-
-        function goHome() { if (activeTabId) loadTabUrl(activeTabId, 'about:blank'); }
-        function reloadTab() { if (activeTabId) loadTabUrl(activeTabId, tabs.find(t => t.id === activeTabId).url); }
-        function goBack() { reloadTab(); }
-        function goForward() { reloadTab(); }
-        function quickNav(url) { if (activeTabId) loadTabUrl(activeTabId, url); }
-
-        function openExternal(tabId) {
-            const tab = tabs.find(t => t.id === tabId);
-            if (tab && tab.url) window.open(tab.url, '_blank');
-        }
-
-        function openSettingsModal() { document.getElementById('settingsModal').classList.add('active'); }
-        function openPrivacyShield() { 
-            const tab = tabs.find(t => t.id === activeTabId);
-            document.getElementById('privacyIncognitoStatus').innerText = tab?.isIncognito ? 'Aktif' : 'Pasif';
-            document.getElementById('privacyAdblockStatus').innerText = userSettings.adblockActive ? 'Aktif' : 'Kapalı';
-            document.getElementById('privacyVpnStatus').innerText = userSettings.vpnActive ? 'Aktif' : 'Kapalı';
-            document.getElementById('privacyModal').classList.add('active'); 
-        }
-
-        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); }
     </script>
 </body>
 </html>
-```
