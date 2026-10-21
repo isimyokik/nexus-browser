@@ -183,37 +183,22 @@
             position: relative;
             margin-top: 96px;
             height: calc(100vh - 96px);
-            overflow: hidden;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             background: var(--bg-primary);
         }
 
-        .page-view {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: white;
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        .page-view.active { display: block; }
-
         /* ANA SAYFA */
         .home-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            overflow-y: auto;
             text-align: center;
-            background: var(--bg-primary);
-            z-index: 10;
+            min-height: 100%;
         }
         .home-screen.hidden { display: none; }
 
@@ -382,4 +367,273 @@
             border: none;
             color: white;
             padding: 8px 16px;
-            border-radius:
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body onscroll="handleScroll(event)">
+
+    <!-- AÇILIR KAPANIR ÜST KISIM -->
+    <div class="top-fixed-container" id="top-container">
+        <div class="tabs-bar" id="tabs-bar">
+            <button class="add-tab-btn" onclick="createNewTab()">+</button>
+        </div>
+
+        <div class="header-bar" id="header-bar">
+            <button class="nav-btn" onclick="goBack()" title="Geri">←</button>
+            <button class="nav-btn" onclick="goForward()" title="İleri">→</button>
+            <button class="nav-btn" onclick="reloadTab()" title="Yenile">↻</button>
+            <button class="nav-btn" onclick="goHome()" title="Ana Sayfa">🎈</button>
+            
+            <div class="url-box">
+                <input type="text" id="url-input" class="url-input" placeholder="Google'da ara veya adres yazın..." onkeydown="handleUrlKey(event)">
+            </div>
+
+            <button class="nav-btn" onclick="toggleSettingsModal()" title="Ayarlar">⚙️</button>
+        </div>
+    </div>
+
+    <!-- İÇERİK ALANI -->
+    <div class="app-body" id="app-body">
+        
+        <!-- ANA SAYFA -->
+        <div class="home-screen" id="home-screen">
+            <div class="brand-logo">Neşeli 🎈</div>
+            <div class="brand-sub">Hızlı ve Özgür İnternet</div>
+
+            <div class="search-container">
+                <span>🔍</span>
+                <input type="text" id="home-search-input" placeholder="Google'da ara veya URL yaz..." onkeydown="handleHomeSearch(event)">
+            </div>
+
+            <div class="home-section">
+                <div class="section-title">
+                    <span>Hızlı Erişim</span>
+                    <button style="background:none; border:none; color:#ff007f; font-size:12px; cursor:pointer; font-weight:bold;" onclick="promptAddBookmark()">+ Site Ekle</button>
+                </div>
+                <div class="grid-container" id="bookmarks-grid"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- AYARLAR MODAL -->
+    <div class="modal" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ayarlar ⚙️</h3>
+                <button class="close-btn" onclick="toggleSettingsModal()">Tamam</button>
+            </div>
+
+            <div class="setting-row">
+                <span>Arama Motoru</span>
+                <select id="setting-search" onchange="updateSettings()">
+                    <option value="google">Google</option>
+                    <option value="yandex">Yandex</option>
+                    <option value="bing">Bing</option>
+                    <option value="duckduckgo">DuckDuckGo</option>
+                </select>
+            </div>
+
+            <div class="setting-row">
+                <span>Tema</span>
+                <select id="setting-theme" onchange="updateSettings()">
+                    <option value="dark">Koyu Tema</option>
+                    <option value="light">Açık Tema</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            tabs: [],
+            activeTabId: null,
+            bookmarks: JSON.parse(localStorage.getItem('neseli_bookmarks') || '[{"name":"Google","url":"https://www.google.com"},{"name":"YouTube","url":"https://www.youtube.com"},{"name":"GitHub","url":"https://github.com"}]'),
+            settings: JSON.parse(localStorage.getItem('neseli_settings') || JSON.stringify({
+                searchEngine: 'google',
+                theme: 'dark'
+            }))
+        };
+
+        let lastScrollTop = 0;
+
+        const SEARCH_ENGINES = {
+            google: 'https://www.google.com/search?q=',
+            yandex: 'https://yandex.com.tr/search/?text=',
+            bing: 'https://www.bing.com/search?q=',
+            duckduckgo: 'https://duckduckgo.com/?q='
+        };
+
+        window.onload = () => {
+            applySettingsUI();
+            renderBookmarks();
+            createNewTab();
+        };
+
+        function handleScroll(e) {
+            const currentScroll = e.target.scrollTop || window.pageYOffset;
+            const topContainer = document.getElementById('top-container');
+
+            if (currentScroll > lastScrollTop && currentScroll > 40) {
+                topContainer.classList.add('hidden-bar');
+            } else {
+                topContainer.classList.remove('hidden-bar');
+            }
+            lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+        }
+
+        function applySettingsUI() {
+            document.getElementById('setting-search').value = state.settings.searchEngine;
+            document.getElementById('setting-theme').value = state.settings.theme;
+
+            document.body.classList.remove('theme-light');
+            if (state.settings.theme === 'light') {
+                document.body.classList.add('theme-light');
+            }
+        }
+
+        function updateSettings() {
+            state.settings.searchEngine = document.getElementById('setting-search').value;
+            state.settings.theme = document.getElementById('setting-theme').value;
+
+            localStorage.setItem('neseli_settings', JSON.stringify(state.settings));
+            applySettingsUI();
+        }
+
+        function toggleSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function createNewTab() {
+            const id = 'tab_' + Date.now();
+            state.tabs.push({ id, title: 'Yeni Sekme', url: null });
+            switchTab(id);
+        }
+
+        function switchTab(id) {
+            state.activeTabId = id;
+            const tab = state.tabs.find(t => t.id === id);
+            const homeScreen = document.getElementById('home-screen');
+
+            if (tab && tab.url) {
+                homeScreen.classList.add('hidden');
+                document.getElementById('url-input').value = tab.url;
+            } else {
+                homeScreen.classList.remove('hidden');
+                document.getElementById('url-input').value = '';
+            }
+            renderTabs();
+        }
+
+        function closeTab(id, event) {
+            if (event) event.stopPropagation();
+            state.tabs = state.tabs.filter(t => t.id !== id);
+            if (state.tabs.length === 0) {
+                createNewTab();
+            } else if (state.activeTabId === id) {
+                switchTab(state.tabs[state.tabs.length - 1].id);
+            } else {
+                renderTabs();
+            }
+        }
+
+        function renderTabs() {
+            const tabsBar = document.getElementById('tabs-bar');
+            tabsBar.innerHTML = '';
+
+            state.tabs.forEach(tab => {
+                const el = document.createElement('div');
+                el.className = `tab-item ${tab.id === state.activeTabId ? 'active' : ''}`;
+                el.onclick = () => switchTab(tab.id);
+                el.innerHTML = `
+                    <span>🎈 ${tab.title}</span>
+                    <span class="tab-close" onclick="closeTab('${tab.id}', event)">✕</span>
+                `;
+                tabsBar.appendChild(el);
+            });
+
+            const addBtn = document.createElement('button');
+            addBtn.className = 'add-tab-btn';
+            addBtn.innerText = '+';
+            addBtn.onclick = () => createNewTab();
+            tabsBar.appendChild(addBtn);
+        }
+
+        function handleUrlKey(e) { if (e.key === 'Enter') navigateTo(e.target.value.trim()); }
+        function handleHomeSearch(e) { if (e.key === 'Enter') navigateTo(e.target.value.trim()); }
+
+        function navigateTo(val) {
+            if (!val) return;
+            const tab = state.tabs.find(t => t.id === state.activeTabId);
+            if (!tab) return;
+
+            let targetUrl = val;
+            if (!val.startsWith('http://') && !val.startsWith('https://')) {
+                if (val.includes('.') && !val.includes(' ')) {
+                    targetUrl = 'https://' + val;
+                } else {
+                    let engine = SEARCH_ENGINES[state.settings.searchEngine] || SEARCH_ENGINES.google;
+                    targetUrl = engine + encodeURIComponent(val);
+                }
+            }
+
+            tab.url = targetUrl;
+            tab.title = val.replace('https://', '').replace('http://', '').split('/')[0];
+
+            // DOĞRUDAN KESİN ÇÖZÜM: Web sitesini iframe engeline takılmadan tarayıcının kendi ana akışında açar
+            window.location.href = targetUrl;
+        }
+
+        function goHome() {
+            const tab = state.tabs.find(t => t.id === state.activeTabId);
+            if (tab) {
+                tab.url = null;
+                tab.title = 'Yeni Sekme';
+                switchTab(tab.id);
+            }
+        }
+
+        function goBack() { window.history.back(); }
+        function goForward() { window.history.forward(); }
+        function reloadTab() { window.location.reload(); }
+
+        function promptAddBookmark() {
+            let name = prompt("Site Adı:");
+            let url = prompt("Site Adresi:");
+            if (name && url) {
+                state.bookmarks.push({ name, url });
+                localStorage.setItem('neseli_bookmarks', JSON.stringify(state.bookmarks));
+                renderBookmarks();
+            }
+        }
+
+        function deleteBookmark(index, event) {
+            event.stopPropagation();
+            state.bookmarks.splice(index, 1);
+            localStorage.setItem('neseli_bookmarks', JSON.stringify(state.bookmarks));
+            renderBookmarks();
+        }
+
+        function renderBookmarks() {
+            const grid = document.getElementById('bookmarks-grid');
+            grid.innerHTML = '';
+            
+            state.bookmarks.forEach((bm, index) => {
+                const el = document.createElement('div');
+                el.className = 'speed-tile';
+                el.onclick = () => navigateTo(bm.url);
+                el.innerHTML = `
+                    <div class="tile-icon">${bm.name.charAt(0).toUpperCase()}</div>
+                    <div class="tile-label">${bm.name}</div>
+                    <div class="tile-delete" onclick="deleteBookmark(${index}, event)">✕</div>
+                `;
+                grid.appendChild(el);
+            });
+        }
+    </script>
+</body>
+</html>
