@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Tünel</title>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #ffffff; }
+        iframe { width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+    <iframe id="target-frame"></iframe>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetUrl = urlParams.get('url');
+        if (targetUrl) {
+            // Sitelerin yüklenmesini sağlayan güvenli köprü
+            document.getElementById('target-frame').src = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
+        }
+    </script>
+</body>
+</html>
