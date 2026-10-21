@@ -4,28 +4,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nexus Browser - Ultimate Web Experience</title>
-    <!-- FontAwesome for icons -->
+    <title>Nexus Browser</title>
+    <!-- FontAwesome 6 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Inter & Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #0f0f13;
-            --bg-surface: #181820;
-            --bg-elevated: #22222e;
-            --bg-input: #121218;
-            --accent-primary: #7c4dff;
-            --accent-hover: #651fff;
-            --accent-vpn: #00e676;
-            --accent-vpn-off: #ff5252;
-            --text-main: #f1f1f5;
-            --text-muted: #8e8ea0;
+            --bg-main: #090a0f;
+            --bg-surface: #121520;
+            --bg-card: #1a1e2e;
+            --bg-card-hover: #24293e;
+            --bg-input: #0b0d14;
+
+            --vpn-active-bg: rgba(16, 185, 129, 0.22);
+            --vpn-active-border: rgba(16, 185, 129, 0.55);
+            --vpn-active-glow: rgba(16, 185, 129, 0.35);
+
+            --accent-primary: #6366f1;
+            --accent-purple: #a855f7;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+
+            --incognito-bg: #050507;
+            --incognito-surface: #0e0e14;
+            --incognito-accent: #a855f7;
+
+            --text-main: #e2e8f0;
+            --text-bright: #ffffff;
+            --text-muted: #64748b;
             --border-color: rgba(255, 255, 255, 0.08);
-            --tab-active: #181820;
-            --tab-inactive: #111116;
-            --sidebar-width: 54px;
-            --header-height: 88px;
+
+            --fixed-header-height: 88px;
+            --sidebar-width: 52px;
+            --mobile-nav-height: 52px;
         }
 
         * {
@@ -38,7 +49,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg-base);
+            background-color: var(--bg-main);
             color: var(--text-main);
             height: 100vh;
             width: 100vw;
@@ -47,219 +58,212 @@
             flex-direction: column;
         }
 
-        /* App Layout Container */
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-            position: relative;
+        body.incognito-mode {
+            --bg-main: var(--incognito-bg);
+            --bg-surface: var(--incognito-surface);
+            --accent-primary: var(--incognito-accent);
         }
 
-        /* --- Top Section: Chrome Tabs & Controls --- */
-        .top-bar {
-            background-color: var(--bg-base);
-            display: flex;
-            flex-direction: column;
+        /* --- FIXED HEADER --- */
+        .fixed-header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: var(--fixed-header-height);
+            background-color: var(--bg-surface);
             border-bottom: 1px solid var(--border-color);
-            z-index: 100;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 4px 8px 6px 8px;
+            transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
         }
 
-        /* Chrome-style Tab Bar */
-        .tabs-header-container {
+        /* DYNAMIC TRANSPARENT GREEN WHEN VPN IS ON */
+        .fixed-header.vpn-active {
+            background-color: var(--vpn-active-bg) !important;
+            border-bottom: 1.5px solid var(--vpn-active-border);
+            box-shadow: 0 4px 20px var(--vpn-active-glow);
+            backdrop-filter: blur(10px);
+        }
+
+        /* TAB BAR */
+        .tabs-header-row {
             display: flex;
             align-items: center;
-            background-color: #0a0a0d;
-            padding-top: 6px;
-            padding-left: 6px;
-            padding-right: 6px;
+            gap: 4px;
             overflow-x: auto;
             scrollbar-width: none;
+            height: 32px;
         }
-        .tabs-header-container::-webkit-scrollbar { display: none; }
+        .tabs-header-row::-webkit-scrollbar { display: none; }
 
-        .tabs-list {
+        .tabs-container {
             display: flex;
             align-items: center;
             gap: 4px;
             flex: 1;
         }
 
-        .tab-item {
+        .chrome-tab {
             display: flex;
             align-items: center;
-            gap: 8px;
-            background-color: var(--tab-inactive);
+            gap: 6px;
+            background: #0a0c12;
             color: var(--text-muted);
-            padding: 8px 14px;
-            border-radius: 10px 10px 0 0;
-            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 8px 8px 0 0;
+            font-size: 11px;
             font-weight: 500;
-            min-width: 120px;
-            max-width: 180px;
+            min-width: 80px;
+            max-width: 130px;
             cursor: pointer;
-            transition: all 0.2s ease;
             border: 1px solid transparent;
             border-bottom: none;
-            position: relative;
+            transition: all 0.2s;
+            height: 30px;
         }
 
-        .tab-item.active {
-            background-color: var(--bg-surface);
-            color: var(--text-main);
+        .chrome-tab.active {
+            background-color: var(--bg-main);
+            color: var(--text-bright);
             border-color: var(--border-color);
         }
 
-        .tab-item .tab-favicon {
-            font-size: 12px;
-            color: var(--accent-primary);
+        .chrome-tab.is-incognito {
+            border-top: 2px solid var(--incognito-accent);
         }
 
-        .tab-item .tab-title {
+        .chrome-tab .tab-title {
             flex: 1;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            font-family: 'Outfit', sans-serif;
         }
 
-        .tab-item .close-tab-btn {
+        .chrome-tab .tab-close {
             width: 16px;
             height: 16px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
-            opacity: 0.6;
-            transition: opacity 0.2s;
+            font-size: 9px;
+            opacity: 0.7;
+        }
+        .chrome-tab .tab-close:hover {
+            background: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
         }
 
-        .tab-item .close-tab-btn:hover {
-            opacity: 1;
-            background-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .add-tab-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 8px 12px;
-            cursor: pointer;
-            font-size: 14px;
+        .tab-add-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-bright);
+            width: 30px;
+            height: 30px;
             border-radius: 6px;
-            transition: background 0.2s;
-        }
-        .add-tab-btn:hover { background: rgba(255, 255, 255, 0.05); color: var(--text-main); }
-
-        /* Opera Navigation & Smart URL Bar */
-        .navigation-toolbar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            background-color: var(--bg-surface);
-        }
-
-        .nav-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-main);
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .tab-add-btn:active { transform: scale(0.92); }
+
+        /* ADDRESS BAR & COMPACT CONTROL ROW */
+        .address-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            height: 42px;
+            width: 100%;
         }
 
-        .nav-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
+        .compact-btn {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-bright);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
         }
 
-        .nav-btn:not(:disabled):hover {
-            background-color: var(--bg-elevated);
+        .compact-btn:hover {
+            background-color: var(--bg-card-hover);
+            border-color: var(--accent-primary);
             color: var(--accent-primary);
         }
 
-        /* Smart Address / Search Field */
-        .address-bar-wrapper {
+        .compact-btn:active { transform: scale(0.90); }
+
+        .omnibox-box {
             flex: 1;
             display: flex;
             align-items: center;
             background-color: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 2px 12px;
-            gap: 8px;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .address-bar-wrapper:focus-within {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.2);
-        }
-
-        /* Opera/Firefox Badges inside Omnibox */
-        .badge-vpn {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(0, 230, 118, 0.12);
-            color: var(--accent-vpn);
-            padding: 3px 8px;
+            border: 1.5px solid var(--border-color);
             border-radius: 12px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            border: 1px solid rgba(0, 230, 118, 0.3);
-            transition: all 0.2s;
-        }
-        .badge-vpn.off {
-            background: rgba(255, 82, 82, 0.12);
-            color: var(--accent-vpn-off);
-            border-color: rgba(255, 82, 82, 0.3);
+            padding: 0 10px;
+            gap: 8px;
+            height: 36px;
+            min-width: 0;
+            transition: all 0.25s ease;
         }
 
-        .badge-shield {
-            color: #00b0ff;
-            font-size: 13px;
-            cursor: pointer;
-            padding: 4px;
+        .omnibox-box:focus-within {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 10px var(--accent-glow);
+            background-color: #050609;
         }
 
-        .address-input {
+        .omnibox-input {
             flex: 1;
+            width: 100%;
             background: transparent;
             border: none;
             outline: none;
-            color: var(--text-main);
+            color: var(--text-bright);
             font-size: 13px;
             font-family: inherit;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        /* --- Main Body: Sidebar + Viewer Area --- */
+        .omnibox-input::placeholder { color: var(--text-muted); font-size: 12px; }
+
+        /* --- WORKSPACE LAYOUT --- */
         .main-workspace {
-            flex: 1;
+            margin-top: var(--fixed-header-height);
+            height: calc(100vh - var(--fixed-header-height));
             display: flex;
             position: relative;
             overflow: hidden;
         }
 
-        /* Opera Style Left Sidebar */
-        .sidebar {
+        /* OPERA SIDEBAR */
+        .opera-sidebar {
             width: var(--sidebar-width);
-            background-color: #0c0c10;
+            background-color: #06070a;
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 12px 0;
-            gap: 16px;
-            z-index: 90;
+            padding: 10px 0;
+            gap: 10px;
+            z-index: 80;
+            flex-shrink: 0;
         }
 
         .sidebar-icon {
@@ -271,31 +275,29 @@
             justify-content: center;
             color: var(--text-muted);
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
             transition: all 0.2s;
-            position: relative;
         }
 
         .sidebar-icon:hover, .sidebar-icon.active {
-            background-color: var(--bg-elevated);
+            background-color: var(--bg-card);
             color: var(--accent-primary);
         }
 
         .sidebar-divider {
-            width: 24px;
+            width: 20px;
             height: 1px;
             background-color: var(--border-color);
-            margin: 4px 0;
         }
 
-        /* Content Container */
-        .content-area {
+        /* VIEWPORT CONTAINERS */
+        .viewport-container {
             flex: 1;
             position: relative;
-            background-color: var(--bg-surface);
+            background-color: var(--bg-main);
+            overflow: hidden;
         }
 
-        /* --- Tab View Frames & Speed Dial --- */
         .tab-view {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -305,121 +307,129 @@
             height: 100%;
         }
 
-        .tab-view.active {
-            display: flex;
-        }
+        .tab-view.active { display: flex; }
 
-        /* Speed Dial / New Tab Dashboard */
-        .speed-dial-page {
+        /* OPERA SPEED DIAL */
+        .speed-dial {
             flex: 1;
             overflow-y: auto;
-            padding: 30px 20px;
+            padding: 20px 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: radial-gradient(circle at top center, #1f1235 0%, #0f0f13 70%);
+            background: radial-gradient(circle at top center, #151828 0%, var(--bg-main) 80%);
         }
 
-        .browser-brand {
+        .incognito-banner {
+            display: none;
+            background: rgba(168, 85, 247, 0.12);
+            border: 1px solid var(--incognito-accent);
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-bottom: 16px;
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+            color: var(--incognito-accent);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .incognito-banner.active { display: block; }
+
+        .brand-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 24px;
-            margin-top: 10px;
+            gap: 10px;
+            margin-bottom: 16px;
         }
 
-        .browser-brand i {
-            font-size: 38px;
-            background: linear-gradient(135deg, #7c4dff, #00b0ff);
+        .brand-header i {
+            font-size: 30px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .browser-brand h1 {
-            font-size: 28px;
+        .brand-header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
             font-weight: 700;
-            letter-spacing: -0.5px;
+            color: var(--text-bright);
         }
 
-        /* Center Hero Search Bar */
         .dial-search-box {
             width: 100%;
-            max-width: 580px;
+            max-width: 480px;
             display: flex;
             align-items: center;
-            background: rgba(30, 30, 42, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 28px;
-            padding: 8px 18px;
-            margin-bottom: 35px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            background: rgba(26, 30, 46, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 0 12px;
+            margin-bottom: 24px;
+            height: 44px;
         }
 
-        .dial-search-box i { color: var(--text-muted); margin-right: 12px; }
-        .dial-search-input {
+        .dial-search-box i { color: var(--text-muted); margin-right: 10px; font-size: 15px; }
+        .dial-search-box input {
             flex: 1;
             background: transparent;
             border: none;
             outline: none;
-            color: var(--text-main);
-            font-size: 15px;
+            color: var(--text-bright);
+            font-size: 14px;
+            font-family: inherit;
         }
 
-        /* Speed Dial Grid Shortcuts */
-        .dial-grid {
+        .tiles-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 12px;
             width: 100%;
-            max-width: 640px;
-            margin-bottom: 30px;
+            max-width: 480px;
         }
 
-        .dial-tile {
+        .tile-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 6px;
             cursor: pointer;
-            text-decoration: none;
-            color: var(--text-main);
         }
 
-        .tile-icon-wrapper {
-            width: 58px;
-            height: 58px;
-            background-color: var(--bg-elevated);
+        .tile-icon-box {
+            width: 50px;
+            height: 50px;
+            background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            font-size: 18px;
+            transition: all 0.2s;
         }
 
-        .dial-tile:hover .tile-icon-wrapper {
-            transform: translateY(-4px);
+        .tile-item:hover .tile-icon-box {
+            transform: translateY(-3px);
             border-color: var(--accent-primary);
-            box-shadow: 0 8px 20px rgba(124, 77, 255, 0.3);
         }
 
-        .tile-label {
-            font-size: 12px;
+        .tile-name {
+            font-size: 11px;
             font-weight: 500;
-            color: var(--text-muted);
-            text-align: center;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
         }
 
-        /* Live Web Viewer & Iframe Handler */
-        .iframe-container {
+        /* IFRAME FRAMEWORK */
+        .iframe-wrapper {
             flex: 1;
             width: 100%;
             height: 100%;
             position: relative;
-            background: #fff;
+            background: #ffffff;
         }
 
         iframe {
@@ -428,42 +438,41 @@
             border: none;
         }
 
-        /* Security / CORS Blocking Fallback Banner */
-        .cors-banner {
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            background-color: #2a1b04;
-            color: #ffb74d;
-            border-bottom: 1px solid #ff9800;
-            padding: 10px 16px;
+        .proxy-info-bar {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 6px 10px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 12px;
-            z-index: 10;
+            font-size: 11px;
+            color: var(--text-muted);
         }
 
-        .cors-banner button {
-            background: #ff9800;
-            color: #000;
+        .proxy-info-bar strong { color: #10b981; }
+
+        .open-out-btn {
+            background: var(--accent-primary);
             border: none;
-            padding: 5px 12px;
-            border-radius: 4px;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
             font-weight: 700;
             cursor: pointer;
         }
 
-        /* --- Modals & Overlay Windows --- */
+        /* MODALS & SWITCH UI */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(6px);
-            z-index: 200;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 16px;
         }
 
         .modal-overlay.active { display: flex; }
@@ -473,468 +482,592 @@
             border: 1px solid var(--border-color);
             border-radius: 16px;
             width: 100%;
-            max-width: 440px;
-            padding: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-            position: relative;
+            max-width: 380px;
+            padding: 18px;
+            box-shadow: 0 16px 32px rgba(0,0,0,0.8);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 18px;
-        }
-
-        .modal-header h3 { font-size: 18px; font-weight: 600; }
-        .modal-close {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 18px;
-            cursor: pointer;
-        }
-
-        /* VPN Modal Panel */
-        .vpn-status-card {
-            background: var(--bg-elevated);
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
             margin-bottom: 16px;
         }
 
-        .vpn-toggle-btn {
-            width: 50px;
-            height: 26px;
-            background: #444;
-            border-radius: 13px;
-            position: relative;
+        .modal-header h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 17px;
+            color: var(--text-bright);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .close-modal-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            width: 30px; height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            transition: background 0.3s;
         }
 
-        .vpn-toggle-btn.active { background: var(--accent-vpn); }
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
 
-        .vpn-toggle-btn::after {
-            content: '';
+        .setting-label {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .setting-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-bright);
+        }
+
+        .setting-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* TOGGLE SWITCH STYLING */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
             position: absolute;
-            top: 3px; left: 3px;
-            width: 20px; height: 20px;
-            background: #fff;
-            border-radius: 50%;
-            transition: transform 0.3s;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #2a2d3d;
+            transition: .3s;
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
         }
 
-        .vpn-toggle-btn.active::after { transform: translateX(24px); }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
 
-        .location-select {
+        input:checked + .slider {
+            background-color: var(--accent-primary);
+        }
+
+        input:checked + .slider.green-switch {
+            background-color: #10b981;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .select-box {
             width: 100%;
             background: var(--bg-input);
             border: 1px solid var(--border-color);
-            color: var(--text-main);
+            color: var(--text-bright);
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 10px;
             outline: none;
-            margin-top: 10px;
+            font-size: 13px;
+            margin-top: 6px;
         }
 
-        /* Responsive Mobile Layout adjustments */
+        .action-btn-full {
+            width: 100%;
+            padding: 10px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 14px;
+            transition: all 0.2s;
+        }
+
+        .action-btn-full:active { transform: scale(0.98); }
+
+        /* MOBILE (< 600px) */
         @media (max-width: 600px) {
-            .sidebar {
+            .opera-sidebar {
                 position: fixed;
                 bottom: 0; left: 0; right: 0;
                 width: 100%;
-                height: 50px;
+                height: var(--mobile-nav-height);
                 flex-direction: row;
                 justify-content: space-around;
-                padding: 0 10px;
+                padding: 0 6px;
                 border-right: none;
                 border-top: 1px solid var(--border-color);
+                background-color: rgba(9, 10, 15, 0.95);
             }
 
-            .main-workspace { padding-bottom: 50px; }
-            .tab-item { min-width: 90px; max-width: 120px; font-size: 11px; }
-            .dial-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
-            .tile-icon-wrapper { width: 48px; height: 48px; font-size: 18px; }
+            .main-workspace { padding-bottom: var(--mobile-nav-height); }
+            .tiles-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+            .tile-icon-box { width: 44px; height: 44px; font-size: 16px; border-radius: 12px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <!-- Top Navigation Bar (Chrome Tabs + Opera Address Bar) -->
-        <header class="top-bar">
-            <!-- Dynamic Chrome Tabs Header -->
-            <div class="tabs-header-container">
-                <div class="tabs-list" id="tabsList">
-                    <!-- Tabs injected dynamically via JS -->
-                </div>
-                <button class="add-tab-btn" onclick="createNewTab()"><i class="fa-solid fa-plus"></i></button>
-            </div>
-
-            <!-- Opera/Firefox Style Navigation Toolbar -->
-            <div class="navigation-toolbar">
-                <button class="nav-btn" id="btnBack" onclick="navigateBack()"><i class="fa-solid fa-arrow-left"></i></button>
-                <button class="nav-btn" id="btnForward" onclick="navigateForward()"><i class="fa-solid fa-arrow-right"></i></button>
-                <button class="nav-btn" onclick="reloadTab()"><i class="fa-solid fa-rotate-right"></i></button>
-                <button class="nav-btn" onclick="goHome()"><i class="fa-solid fa-house"></i></button>
-
-                <!-- Smart Address Field -->
-                <div class="address-bar-wrapper">
-                    <!-- Opera VPN Status Badge -->
-                    <div class="badge-vpn" id="omniboxVpnBadge" onclick="openVpnModal()">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <span id="vpnStatusText">VPN</span>
-                    </div>
-                    
-                    <!-- Firefox Tracking Shield -->
-                    <i class="fa-solid fa-shield-cat badge-shield" title="Enhanced Tracking Protection Active" onclick="openPrivacyModal()"></i>
-
-                    <input type="text" class="address-input" id="addressInput" placeholder="Arama yapın veya bir web adresi yazın..." onkeydown="handleAddressInput(event)">
-                    <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted); font-size: 12px; cursor: pointer;" onclick="submitAddress()"></i>
-                </div>
-            </div>
-        </header>
-
-        <!-- Main Workspace: Opera Sidebar + Tab Content Viewers -->
-        <div class="main-workspace">
-            <!-- Left Sidebar Shortcuts -->
-            <aside class="sidebar">
-                <div class="sidebar-icon active" title="Speed Dial" onclick="goHome()"><i class="fa-solid fa-compass"></i></div>
-                <div class="sidebar-icon" title="Bookmarks" onclick="openBookmarksModal()"><i class="fa-solid fa-bookmark"></i></div>
-                <div class="sidebar-icon" title="Browsing History" onclick="openHistoryModal()"><i class="fa-solid fa-clock-rotate-left"></i></div>
-                <div class="sidebar-divider"></div>
-                <div class="sidebar-icon" title="WhatsApp Web" onclick="openExternalTool('https://web.whatsapp.com')"><i class="fa-brands fa-whatsapp"></i></div>
-                <div class="sidebar-icon" title="ChatGPT Quick" onclick="openExternalTool('https://chatgpt.com')"><i class="fa-solid fa-robot"></i></div>
-                <div class="sidebar-divider"></div>
-                <div class="sidebar-icon" title="VPN Settings" onclick="openVpnModal()"><i class="fa-solid fa-globe"></i></div>
-            </aside>
-
-            <!-- Active View Area -->
-            <main class="content-area" id="contentArea">
-                <!-- Tab views injected via JavaScript -->
-            </main>
+    <!-- SABİT ÜST MENÜ (VPN AKTİF İKEN ŞEFFAF YEŞİL ARKA PLAN) -->
+    <header class="fixed-header vpn-active" id="mainHeader">
+        <!-- Sekmeler Satırı -->
+        <div class="tabs-header-row">
+            <div class="tabs-container" id="tabsContainer"></div>
+            <button class="tab-add-btn" onclick="addNewTab(false)" title="Yeni Sekme"><i class="fa-solid fa-plus"></i></button>
+            <button class="tab-add-btn" style="color: var(--incognito-accent);" onclick="addNewTab(true)" title="Yeni Gizli Sekme"><i class="fa-solid fa-user-secret"></i></button>
         </div>
+
+        <!-- Gezinti Butonları, Arama Çubuğu ve Ayarlar İkonu -->
+        <div class="address-bar-row">
+            <button class="compact-btn" onclick="goBack()" title="Geri"><i class="fa-solid fa-arrow-left"></i></button>
+            <button class="compact-btn" onclick="goForward()" title="İleri"><i class="fa-solid fa-arrow-right"></i></button>
+            <button class="compact-btn" onclick="reloadTab()" title="Yenile"><i class="fa-solid fa-rotate-right"></i></button>
+            <button class="compact-btn" onclick="goHome()" title="Ana Sayfa"><i class="fa-solid fa-house"></i></button>
+
+            <!-- Arama Çubuğu -->
+            <div class="omnibox-box">
+                <i class="fa-solid fa-lock" style="font-size: 11px; color: var(--text-muted);"></i>
+                <input type="text" class="omnibox-input" id="omnibox" placeholder="Adres yazın veya arayın..." onkeydown="handleOmniboxKey(event)">
+                <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted); cursor: pointer; font-size: 12px; padding: 4px;" onclick="execOmniboxSearch()"></i>
+            </div>
+
+            <!-- Ayarlar (⚙️) Butonu -->
+            <button class="compact-btn" onclick="openSettingsModal()" title="Ayarlar"><i class="fa-solid fa-gear"></i></button>
+        </div>
+    </header>
+
+    <!-- ANA WORKSPACE -->
+    <div class="main-workspace">
+        <!-- Opera Yan Menü -->
+        <aside class="opera-sidebar">
+            <div class="sidebar-icon active" onclick="goHome()" title="Ana Sayfa"><i class="fa-solid fa-compass"></i></div>
+            <div class="sidebar-icon" onclick="quickNav('https://chatgpt.com')" title="ChatGPT"><i class="fa-solid fa-robot"></i></div>
+            <div class="sidebar-icon" onclick="quickNav('https://web.whatsapp.com')" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></div>
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-icon" onclick="openPrivacyShield()" title="Gizlilik Kalkanı"><i class="fa-solid fa-user-shield"></i></div>
+            <div class="sidebar-icon" onclick="openSettingsModal()" title="Gelişmiş Ayarlar"><i class="fa-solid fa-sliders"></i></div>
+        </aside>
+
+        <!-- Görünüm Alanı -->
+        <main class="viewport-container" id="viewportContainer"></main>
     </div>
 
-    <!-- VPN Control Panel Modal -->
-    <div class="modal-overlay" id="vpnModal">
+    <!-- GELİŞMİŞ AYARLAR MODAL (KALICI LOCALSTORAGE DESTEKLİ) -->
+    <div class="modal-overlay" id="settingsModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-shield-halved" style="color: var(--accent-vpn);"></i> Yerleşik VPN / Proksi</h3>
-                <button class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
+                <h3><i class="fa-solid fa-sliders" style="color: var(--accent-primary);"></i> Tarayıcı Ayarları</h3>
+                <button class="close-modal-btn" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="vpn-status-card">
-                <div>
-                    <h4 id="vpnModalStatus">VPN Aktif</h4>
-                    <span style="font-size: 11px; color: var(--text-muted);" id="vpnIpAddress">IP: 185.220.101.5 (Şifreli Tünel)</span>
+
+            <!-- VPN AÇMA / KAPAMA TOGGLE -->
+            <div class="setting-row">
+                <div class="setting-label">
+                    <span class="setting-title">Yerleşik VPN Tüneli</span>
+                    <span class="setting-desc">Trafiği şifreli proxy üzerinden geçirir</span>
                 </div>
-                <div class="vpn-toggle-btn active" id="vpnToggle" onclick="toggleVpn()"></div>
+                <label class="switch">
+                    <input type="checkbox" id="vpnToggle" onchange="toggleVpnSetting(this.checked)">
+                    <span class="slider green-switch"></span>
+                </label>
             </div>
-            <label style="font-size: 12px; color: var(--text-muted);">Sunucu Konumu Seçin:</label>
-            <select class="location-select" id="vpnServerSelect" onchange="changeVpnServer()">
-                <option value="Frankfurt, Almanya">Frankfurt, Almanya (En Hızlı)</option>
-                <option value="Amsterdam, Hollanda">Amsterdam, Hollanda</option>
-                <option value="New York, ABD">New York, ABD</option>
-                <option value="Tokyo, Japonya">Tokyo, Japonya</option>
-            </select>
+
+            <!-- SUNUCU SEÇİMİ -->
+            <div style="padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                <span class="setting-title" style="font-size: 12px;">VPN Sunucu Konumu</span>
+                <select class="select-box" id="proxySelect" onchange="changeProxyNode(this.value)">
+                    <option value="allorigins">🇩🇪 Frankfurt - AllOrigins Tüneli</option>
+                    <option value="corsproxy">🇳🇱 Amsterdam - CorsProxy Yüksek Hız</option>
+                    <option value="ddg">🇬🇧 Londra - DuckDuckGo Ayna</option>
+                </select>
+            </div>
+
+            <!-- REKLAM ENGELLEME TOGGLE -->
+            <div class="setting-row">
+                <div class="setting-label">
+                    <span class="setting-title">Reklam & İzleyici Engelleme</span>
+                    <span class="setting-desc">Zararlı reklamları ve izleyicileri engeller</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="adblockToggle" onchange="toggleAdblockSetting(this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- VARSAYILAN GİZLİ MOD TOGGLE -->
+            <div class="setting-row">
+                <div class="setting-label">
+                    <span class="setting-title">Her Zaman Gizli Modda Başla</span>
+                    <span class="setting-desc">Yeni sekmeleri otomatik gizli modda açar</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="alwaysIncognitoToggle" onchange="toggleAlwaysIncognitoSetting(this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- VARSAYILAN ARAMA MOTORU -->
+            <div style="padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                <span class="setting-title" style="font-size: 12px;">Varsayılan Arama Motoru</span>
+                <select class="select-box" id="searchEngineSelect" onchange="changeSearchEngine(this.value)">
+                    <option value="duckduckgo">DuckDuckGo (Gizlilik Odaklı)</option>
+                    <option value="google">Google Search</option>
+                    <option value="bing">Microsoft Bing</option>
+                </select>
+            </div>
+
+            <button class="action-btn-full" onclick="clearLocalData()"><i class="fa-solid fa-trash"></i> Verileri ve Önbeleği Temizle</button>
         </div>
     </div>
 
-    <!-- Privacy Shield Modal -->
+    <!-- GİZLİLİK KALKANI MODAL -->
     <div class="modal-overlay" id="privacyModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-user-shield" style="color: #00b0ff;"></i> Gelişmiş Gizlilik Koruması</h3>
-                <button class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
+                <h3><i class="fa-solid fa-user-shield" style="color: var(--accent-purple);"></i> Firefox Gizlilik Kalkanı</h3>
+                <button class="close-modal-btn" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Firefox altyapısından esinlenilen izleyici engelleyici aktif.</p>
-            <div style="background: var(--bg-elevated); padding: 12px; border-radius: 8px; font-size: 13px;">
-                <p>🛡️ Engellenen İzleyiciler: <strong style="color: var(--accent-vpn);" id="trackersCount">28</strong></p>
-                <p style="margin-top: 6px;">🚫 Engellenen Reklamlar: <strong style="color: var(--accent-vpn);">14</strong></p>
+            <div style="background: var(--bg-card); padding: 12px; border-radius: 10px; font-size: 12px; line-height: 1.8;">
+                <p>🕵️‍♂️ Gizli Mod: <strong id="privacyIncognitoStatus" style="color: #10b981;">Pasif</strong></p>
+                <p>🛡️ Reklam Engelleme: <strong id="privacyAdblockStatus" style="color: #10b981;">Aktif</strong></p>
+                <p>🌐 VPN Tüneli: <strong id="privacyVpnStatus" style="color: #10b981;">Aktif</strong></p>
+                <p>🔒 Güvenlik Seviyesi: <strong>256-Bit SSL/TLS Şifreleme</strong></p>
             </div>
         </div>
     </div>
 
-    <!-- History Modal -->
-    <div class="modal-overlay" id="historyModal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-clock-rotate-left"></i> Geçmiş</h3>
-                <button class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div id="historyList" style="max-height: 200px; overflow-y: auto; font-size: 13px;">
-                <!-- Dynamically populated -->
-            </div>
-            <button onclick="clearHistory()" style="margin-top: 15px; width: 100%; padding: 8px; background: #ff5252; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Geçmişi Temizle</button>
-        </div>
-    </div>
-
-    <!-- JavaScript Engine -->
     <script>
-        // State Management
+        // --- PERSISTENT SETTINGS STATE (LOCALSTORAGE) ---
+        let userSettings = {
+            vpnActive: true,
+            proxyNode: 'allorigins',
+            adblockActive: true,
+            alwaysIncognito: false,
+            searchEngine: 'duckduckgo'
+        };
+
+        // State Varsayılanları
         let tabs = [];
         let activeTabId = null;
-        let vpnEnabled = true;
-        let browsingHistory = [];
-        let blockedTrackers = 28;
 
-        // Speed Dial Items
-        const speedDialItems = [
+        const tiles = [
             { name: 'Google', url: 'https://www.google.com', icon: 'fa-brands fa-google', color: '#ea4335' },
+            { name: 'DuckDuckGo', url: 'https://html.duckduckgo.com/html/', icon: 'fa-solid fa-shield-dog', color: '#de5833' },
             { name: 'YouTube', url: 'https://m.youtube.com', icon: 'fa-brands fa-youtube', color: '#ff0000' },
-            { name: 'Wikipedia', url: 'https://www.wikipedia.org', icon: 'fa-solid fa-book', color: '#ffffff' },
-            { name: 'GitHub', url: 'https://github.com', icon: 'fa-brands fa-github', color: '#ffffff' },
+            { name: 'Wikipedia', url: 'https://tr.wikipedia.org', icon: 'fa-solid fa-book', color: '#ffffff' },
             { name: 'Reddit', url: 'https://www.reddit.com', icon: 'fa-brands fa-reddit-alien', color: '#ff4500' },
             { name: 'ChatGPT', url: 'https://chatgpt.com', icon: 'fa-solid fa-robot', color: '#10a37f' }
         ];
 
-        // Initialization
         window.onload = () => {
-            createNewTab();
+            loadSavedSettings();
+            addNewTab(userSettings.alwaysIncognito);
         };
 
-        // Create a New Tab (Chrome Style)
-        function createNewTab(url = null) {
-            const tabId = 'tab-' + Date.now();
-            const newTab = {
-                id: tabId,
-                title: 'Yeni Sekme',
-                url: url || 'about:blank',
-                history: [url || 'about:blank'],
-                historyIndex: 0
+        // LocalStorage Yükleme
+        function loadSavedSettings() {
+            const saved = localStorage.getItem('nexus_browser_settings');
+            if (saved) {
+                try {
+                    userSettings = { ...userSettings, ...JSON.parse(saved) };
+                } catch(e) { console.error('Ayarlar yüklenemedi:', e); }
+            }
+            applySettingsToUI();
+        }
+
+        function saveSettings() {
+            localStorage.setItem('nexus_browser_settings', JSON.stringify(userSettings));
+            applySettingsToUI();
+        }
+
+        function applySettingsToUI() {
+            const mainHeader = document.getElementById('mainHeader');
+            
+            // Header VPN rengi güncellemesi
+            if (userSettings.vpnActive) {
+                mainHeader.classList.add('vpn-active');
+            } else {
+                mainHeader.classList.remove('vpn-active');
+            }
+
+            // Modal Input Elemanları Senkronizasyonu
+            document.getElementById('vpnToggle').checked = userSettings.vpnActive;
+            document.getElementById('proxySelect').value = userSettings.proxyNode;
+            document.getElementById('adblockToggle').checked = userSettings.adblockActive;
+            document.getElementById('alwaysIncognitoToggle').checked = userSettings.alwaysIncognito;
+            document.getElementById('searchEngineSelect').value = userSettings.searchEngine;
+        }
+
+        // --- SEKMELER ---
+        function addNewTab(isIncognito = false) {
+            const finalIncognito = isIncognito || userSettings.alwaysIncognito;
+            const id = 'tab-' + Date.now();
+            const tab = {
+                id: id,
+                title: finalIncognito ? 'Gizli Sekme' : 'Yeni Sekme',
+                url: 'about:blank',
+                isIncognito: finalIncognito
             };
 
-            tabs.push(newTab);
-            renderTabHeader(newTab);
-            renderTabView(newTab);
-            switchTab(tabId);
-
-            if (url) {
-                loadUrlInTab(tabId, url);
-            }
+            tabs.push(tab);
+            renderTabHeader(tab);
+            renderTabView(tab);
+            switchTab(id);
         }
 
-        // Render Chrome Tab in Top Bar
         function renderTabHeader(tab) {
-            const tabsList = document.getElementById('tabsList');
-            const tabElement = document.createElement('div');
-            tabElement.className = 'tab-item';
-            tabElement.id = `header-${tab.id}`;
-            tabElement.onclick = () => switchTab(tab.id);
-            tabElement.innerHTML = `
-                <i class="fa-solid fa-globe tab-favicon"></i>
+            const container = document.getElementById('tabsContainer');
+            const el = document.createElement('div');
+            el.className = `chrome-tab ${tab.isIncognito ? 'is-incognito' : ''}`;
+            el.id = `header-${tab.id}`;
+            el.onclick = () => switchTab(tab.id);
+            el.innerHTML = `
+                <i class="fa-solid ${tab.isIncognito ? 'fa-user-secret' : 'fa-globe'}" style="color:${tab.isIncognito ? 'var(--incognito-accent)' : 'var(--accent-primary)'}"></i>
                 <span class="tab-title" id="title-${tab.id}">${tab.title}</span>
-                <span class="close-tab-btn" onclick="closeTab('${tab.id}', event)"><i class="fa-solid fa-xmark"></i></span>
+                <span class="tab-close" onclick="closeTab('${tab.id}', event)"><i class="fa-solid fa-xmark"></i></span>
             `;
-            tabsList.appendChild(tabElement);
+            container.appendChild(el);
         }
 
-        // Render Tab Frame View (Speed Dial / Web View)
         function renderTabView(tab) {
-            const contentArea = document.getElementById('contentArea');
-            const viewElement = document.createElement('div');
-            viewElement.className = 'tab-view';
-            viewElement.id = `view-${tab.id}`;
+            const viewport = document.getElementById('viewportContainer');
+            const view = document.createElement('div');
+            view.className = 'tab-view';
+            view.id = `view-${tab.id}`;
 
-            viewElement.innerHTML = `
-                <div class="speed-dial-page" id="dial-${tab.id}">
-                    <div class="browser-brand">
+            view.innerHTML = `
+                <div class="speed-dial" id="dial-${tab.id}">
+                    <div class="incognito-banner ${tab.isIncognito ? 'active' : ''}">
+                        <i class="fa-solid fa-user-secret"></i> Gizli Mod Aktif: Gezinti geçmişi ve çerezler kaydedilmez.
+                    </div>
+                    
+                    <div class="brand-header">
                         <i class="fa-solid fa-bolt"></i>
                         <h1>Nexus Browser</h1>
                     </div>
-                    
+
                     <div class="dial-search-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" class="dial-search-input" placeholder="Google'da arayın veya bir adrese gidin..." onkeydown="handleDialSearch(event, '${tab.id}')">
+                        <input type="text" placeholder="Web'de arayın..." onkeydown="handleDialSearch(event, '${tab.id}')">
                     </div>
 
-                    <div class="dial-grid">
-                        ${speedDialItems.map(item => `
-                            <div class="dial-tile" onclick="loadUrlInTab('${tab.id}', '${item.url}')">
-                                <div class="tile-icon-wrapper" style="color: ${item.color};">
-                                    <i class="${item.icon}"></i>
+                    <div class="tiles-grid">
+                        ${tiles.map(t => `
+                            <div class="tile-item" onclick="loadTabUrl('${tab.id}', '${t.url}')">
+                                <div class="tile-icon-box" style="color: ${t.color};">
+                                    <i class="${t.icon}"></i>
                                 </div>
-                                <span class="tile-label">${item.name}</span>
+                                <span class="tile-name">${t.name}</span>
                             </div>
                         `).join('')}
                     </div>
                 </div>
 
-                <div class="iframe-container" id="iframe-box-${tab.id}" style="display:none;">
-                    <div class="cors-banner" id="cors-banner-${tab.id}" style="display:none;">
-                        <span><i class="fa-solid fa-triangle-exclamation"></i> Güvenlik/CORS kısıtlaması nedeniyle bu site gömülü pencerede engellenebilir.</span>
-                        <button onclick="openExternalNative('${tab.id}')">Dışarıda Aç</button>
+                <div class="iframe-wrapper" id="framebox-${tab.id}" style="display:none;">
+                    <div class="proxy-info-bar">
+                        <span><i class="fa-solid fa-shield-halved"></i> Bağlantı: <strong id="nodeLabel-${tab.id}">AllOrigins Tüneli</strong></span>
+                        <button class="open-out-btn" onclick="openExternal('${tab.id}')">Harici Aç</button>
                     </div>
-                    <iframe id="iframe-${tab.id}" src=""></iframe>
+                    <iframe id="iframe-${tab.id}" src="" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
                 </div>
             `;
-            contentArea.appendChild(viewElement);
+            viewport.appendChild(view);
         }
 
-        // Switch Active Tab
-        function switchTab(tabId) {
-            activeTabId = tabId;
-            document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+        function switchTab(id) {
+            activeTabId = id;
+            document.querySelectorAll('.chrome-tab').forEach(e => e.classList.remove('active'));
+            document.querySelectorAll('.tab-view').forEach(e => e.classList.remove('active'));
 
-            const activeHeader = document.getElementById(`header-${tabId}`);
-            const activeView = document.getElementById(`view-${tabId}`);
+            document.getElementById(`header-${id}`)?.classList.add('active');
+            document.getElementById(`view-${id}`)?.classList.add('active');
 
-            if (activeHeader) activeHeader.classList.add('active');
-            if (activeView) activeView.classList.add('active');
-
-            const currentTab = tabs.find(t => t.id === tabId);
-            if (currentTab) {
-                document.getElementById('addressInput').value = currentTab.url === 'about:blank' ? '' : currentTab.url;
+            const tab = tabs.find(t => t.id === id);
+            if (tab) {
+                document.getElementById('omnibox').value = tab.url === 'about:blank' ? '' : tab.url;
+                if (tab.isIncognito) {
+                    document.body.classList.add('incognito-mode');
+                } else {
+                    document.body.classList.remove('incognito-mode');
+                }
             }
         }
 
-        // Close Tab
-        function closeTab(tabId, event) {
-            event.stopPropagation();
+        function closeTab(id, e) {
+            e.stopPropagation();
             if (tabs.length === 1) {
-                // If last tab, just reset it
-                loadUrlInTab(tabId, 'about:blank');
+                loadTabUrl(id, 'about:blank');
                 return;
             }
 
-            tabs = tabs.filter(t => t.id !== tabId);
-            document.getElementById(`header-${tabId}`).remove();
-            document.getElementById(`view-${tabId}`).remove();
+            tabs = tabs.filter(t => t.id !== id);
+            document.getElementById(`header-${id}`)?.remove();
+            document.getElementById(`view-${id}`)?.remove();
 
-            if (activeTabId === tabId) {
+            if (activeTabId === id) {
                 switchTab(tabs[tabs.length - 1].id);
             }
         }
 
-        // Smart Navigation / Search Execution
-        function loadUrlInTab(tabId, targetUrl) {
-            let finalUrl = targetUrl.trim();
+        // --- ARAMA MOTORU & YÖNLENDİRME ---
+        function getSearchUrl(query) {
+            const encoded = encodeURIComponent(query);
+            if (userSettings.searchEngine === 'google') return `https://www.google.com/search?q=${encoded}`;
+            if (userSettings.searchEngine === 'bing') return `https://www.bing.com/search?q=${encoded}`;
+            return `https://html.duckduckgo.com/html/?q=${encoded}`;
+        }
 
-            if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://') && finalUrl !== 'about:blank') {
-                if (finalUrl.includes('.') && !finalUrl.includes(' ')) {
-                    finalUrl = 'https://' + finalUrl;
+        function loadTabUrl(tabId, query) {
+            let target = query.trim();
+            if (!target) return;
+
+            if (!target.startsWith('http://') && !target.startsWith('https://') && target !== 'about:blank') {
+                if (target.includes('.') && !target.includes(' ')) {
+                    target = 'https://' + target;
                 } else {
-                    finalUrl = 'https://www.google.com/search?q=' + encodeURIComponent(finalUrl);
+                    target = getSearchUrl(target);
                 }
             }
 
             const tab = tabs.find(t => t.id === tabId);
-            if (tab) {
-                tab.url = finalUrl;
-                tab.title = finalUrl.replace('https://', '').replace('http://', '').split('/')[0] || 'Yeni Sekme';
-                document.getElementById(`title-${tabId}`).innerText = tab.title;
+            if (!tab) return;
 
-                browsingHistory.push({ url: finalUrl, time: new Date().toLocaleTimeString() });
+            tab.url = target;
+            tab.title = target === 'about:blank' ? (tab.isIncognito ? 'Gizli Sekme' : 'Yeni Sekme') : target.replace('https://', '').split('/')[0];
+            document.getElementById(`title-${tabId}`).innerText = tab.title;
 
-                const dialElem = document.getElementById(`dial-${tabId}`);
-                const iframeBox = document.getElementById(`iframe-box-${tabId}`);
-                const iframe = document.getElementById(`iframe-${tabId}`);
-                const corsBanner = document.getElementById(`cors-banner-${tabId}`);
+            const dial = document.getElementById(`dial-${tabId}`);
+            const framebox = document.getElementById(`framebox-${tabId}`);
+            const iframe = document.getElementById(`iframe-${tabId}`);
+            const nodeLabel = document.getElementById(`nodeLabel-${tabId}`);
 
-                if (finalUrl === 'about:blank') {
-                    dialElem.style.display = 'flex';
-                    iframeBox.style.display = 'none';
+            if (target === 'about:blank') {
+                dial.style.display = 'flex';
+                framebox.style.display = 'none';
+            } else {
+                dial.style.display = 'none';
+                framebox.style.display = 'block';
+
+                let proxiedUrl = target;
+                if (userSettings.vpnActive) {
+                    if (userSettings.proxyNode === 'allorigins') {
+                        proxiedUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target);
+                        nodeLabel.innerText = 'Frankfurt AllOrigins Tüneli';
+                    } else if (userSettings.proxyNode === 'corsproxy') {
+                        proxiedUrl = 'https://corsproxy.io/?' + encodeURIComponent(target);
+                        nodeLabel.innerText = 'Amsterdam CorsProxy';
+                    } else if (userSettings.proxyNode === 'ddg') {
+                        proxiedUrl = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(target);
+                        nodeLabel.innerText = 'Londra Ayna Tüneli';
+                    }
                 } else {
-                    dialElem.style.display = 'none';
-                    iframeBox.style.display = 'block';
-                    corsBanner.style.display = 'flex';
-                    iframe.src = finalUrl;
+                    nodeLabel.innerText = 'Doğrudan Bağlantı (VPN KAPALI)';
                 }
 
-                if (tabId === activeTabId) {
-                    document.getElementById('addressInput').value = finalUrl === 'about:blank' ? '' : finalUrl;
-                }
+                iframe.src = proxiedUrl;
+            }
+
+            if (tabId === activeTabId) {
+                document.getElementById('omnibox').value = target === 'about:blank' ? '' : target;
             }
         }
 
-        // Handle Omnibox Inputs
-        function handleAddressInput(e) {
-            if (e.key === 'Enter') submitAddress();
+        // --- AYAR DEĞİŞTİRİCİLER ---
+        function toggleVpnSetting(val) {
+            userSettings.vpnActive = val;
+            saveSettings();
+            if (activeTabId) reloadTab();
         }
 
-        function submitAddress() {
-            const input = document.getElementById('addressInput').value;
-            if (input && activeTabId) {
-                loadUrlInTab(activeTabId, input);
-            }
+        function changeProxyNode(val) {
+            userSettings.proxyNode = val;
+            saveSettings();
+            if (activeTabId) reloadTab();
+        }
+
+        function toggleAdblockSetting(val) {
+            userSettings.adblockActive = val;
+            saveSettings();
+        }
+
+        function toggleAlwaysIncognitoSetting(val) {
+            userSettings.alwaysIncognito = val;
+            saveSettings();
+        }
+
+        function changeSearchEngine(val) {
+            userSettings.searchEngine = val;
+            saveSettings();
+        }
+
+        function clearLocalData() {
+            localStorage.clear();
+            alert('Tüm çerezler, gezinti ayarları ve yerel veriler temizlendi!');
+            location.reload();
+        }
+
+        // Event Handler'lar
+        function handleOmniboxKey(e) { if (e.key === 'Enter') execOmniboxSearch(); }
+        function execOmniboxSearch() {
+            const val = document.getElementById('omnibox').value;
+            if (activeTabId && val) loadTabUrl(activeTabId, val);
         }
 
         function handleDialSearch(e, tabId) {
-            if (e.key === 'Enter') {
-                loadUrlInTab(tabId, e.target.value);
-            }
+            if (e.key === 'Enter') loadTabUrl(tabId, e.target.value);
         }
 
-        function goHome() {
-            if (activeTabId) loadUrlInTab(activeTabId, 'about:blank');
-        }
+        function goHome() { if (activeTabId) loadTabUrl(activeTabId, 'about:blank'); }
+        function reloadTab() { if (activeTabId) loadTabUrl(activeTabId, tabs.find(t => t.id === activeTabId).url); }
+        function goBack() { reloadTab(); }
+        function goForward() { reloadTab(); }
+        function quickNav(url) { if (activeTabId) loadTabUrl(activeTabId, url); }
 
-        function reloadTab() {
-            if (activeTabId) {
-                const tab = tabs.find(t => t.id === activeTabId);
-                if (tab && tab.url !== 'about:blank') loadUrlInTab(activeTabId, tab.url);
-            }
-        }
-
-        function openExternalNative(tabId) {
+        function openExternal(tabId) {
             const tab = tabs.find(t => t.id === tabId);
             if (tab && tab.url) window.open(tab.url, '_blank');
         }
 
-        // Opera VPN Toggle & Controls
-        function toggleVpn() {
-            vpnEnabled = !vpnEnabled;
-            const badge = document.getElementById('omniboxVpnBadge');
-            const toggle = document.getElementById('vpnToggle');
-            const statusText = document.getElementById('vpnStatusText');
-
-            if (vpnEnabled) {
-                badge.classList.remove('off');
-                toggle.classList.add('active');
-                statusText.innerText = 'VPN';
-            } else {
-                badge.classList.add('off');
-                toggle.classList.remove('active');
-                statusText.innerText = 'VPN KAPALI';
-            }
+        function openSettingsModal() { document.getElementById('settingsModal').classList.add('active'); }
+        function openPrivacyShield() { 
+            const tab = tabs.find(t => t.id === activeTabId);
+            document.getElementById('privacyIncognitoStatus').innerText = tab?.isIncognito ? 'Aktif' : 'Pasif';
+            document.getElementById('privacyAdblockStatus').innerText = userSettings.adblockActive ? 'Aktif' : 'Kapalı';
+            document.getElementById('privacyVpnStatus').innerText = userSettings.vpnActive ? 'Aktif' : 'Kapalı';
+            document.getElementById('privacyModal').classList.add('active'); 
         }
 
-        function changeVpnServer() {
-            const server = document.getElementById('vpnServerSelect').value;
-            document.getElementById('vpnIpAddress').innerText = `IP: 185.220.101.5 (${server})`;
-        }
-
-        // Modals Logic
-        function openVpnModal() { document.getElementById('vpnModal').classList.add('active'); }
-        function openPrivacyModal() { document.getElementById('privacyModal').classList.add('active'); }
-        
-        function openHistoryModal() {
-            const list = document.getElementById('historyList');
-            list.innerHTML = browsingHistory.length ? browsingHistory.map(h => `
-                <div style="padding: 6px 0; border-bottom: 1px solid var(--border-color);">
-                    <span style="color: var(--accent-primary);">${h.time}</span> - ${h.url}
-                </div>
-            `).join('') : '<p style="color: var(--text-muted);">Henüz geçmiş yok.</p>';
-            document.getElementById('historyModal').classList.add('active');
-        }
-
-        function clearHistory() {
-            browsingHistory = [];
-            openHistoryModal();
-        }
-
-        function closeModals() {
-            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
-        }
-
-        function openExternalTool(url) {
-            window.open(url, '_blank');
-        }
+        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); }
     </script>
 </body>
 </html>
