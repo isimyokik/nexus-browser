@@ -44,7 +44,7 @@
             transition: background-color 0.3s;
         }
 
-        /* AÇILIR KAPANIR ÜST BAR */
+        /* AÇILIR KAPANIR ÜST BAR (Aşağı kaydırınca gizlenir, yukarı çıkınca açılır) */
         .top-fixed-container {
             position: fixed;
             top: 0;
@@ -396,7 +396,7 @@
     </div>
 
     <!-- İÇERİK ALANI -->
-    <div class="app-body" id="app-body">
+    <div class="app-body" id="app-body" onscroll="handleScroll(event)">
         
         <!-- ANA SAYFA -->
         <div class="home-screen" id="home-screen">
@@ -474,7 +474,7 @@
         };
 
         function handleScroll(e) {
-            const currentScroll = e.target.scrollTop || window.pageYOffset;
+            const currentScroll = e.target.scrollTop;
             const topContainer = document.getElementById('top-container');
 
             if (currentScroll > lastScrollTop && currentScroll > 40) {
@@ -583,8 +583,6 @@
 
             tab.url = targetUrl;
             tab.title = val.replace('https://', '').replace('http://', '').split('/')[0];
-
-            // DOĞRUDAN KESİN ÇÖZÜM: Web sitesini iframe engeline takılmadan tarayıcının kendi ana akışında açar
             window.location.href = targetUrl;
         }
 
@@ -637,3 +635,4 @@
     </script>
 </body>
 </html>
+
