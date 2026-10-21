@@ -1,0 +1,15 @@
+name: APK Yapici
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: PWABuilder ile APK Olustur
+        uses: pwa-builder/pwa-action@v1.0.1
+        with:
+          manifest_url: 'https://raw.githubusercontent.com/${{ github.repository }}/main/manifest.json'
